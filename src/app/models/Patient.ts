@@ -48,7 +48,9 @@ class Patient {
   })
   photo?: string
 
-  @Column()
+  @Column({
+    default: false
+  })
   attended?: boolean
 
   @OneToOne(() => Address, address => address.patient)
