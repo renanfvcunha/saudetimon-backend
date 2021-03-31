@@ -8,7 +8,9 @@ import IUser from '../../typescript/IUser'
 class UserController {
   public async index (req: Request, res: Response) {
     try {
-      const users = await getRepository(User).find()
+      const users = await getRepository(User).find({
+        select: ['id', 'name', 'username', 'admin']
+      })
 
       return res.json(users)
     } catch (err) {
