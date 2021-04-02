@@ -8,13 +8,25 @@ function pStart (num: number) {
 
 const uploadFilesCfg = multer({
   storage: multer.diskStorage({
-    destination: resolve(__dirname, '..', 'uploads'),
+    destination: resolve(__dirname, '..', '..', 'uploads'),
     filename (req, file, cb) {
       const ext = file.originalname.split('.').pop()
 
+      let prefix: string
+
+      const imgTypes = ['png', 'jpg', 'jpeg'].find(
+        img => img === ext?.toLowerCase()
+      )
+
+      if (imgTypes) {
+        prefix = 'IMG'
+      } else {
+        prefix = 'DOC'
+      }
+
       const date = new Date()
 
-      const fileName = `IMG_${date.getFullYear().toString()}${pStart(
+      const fileName = `${prefix}_${date.getFullYear().toString()}${pStart(
         date.getMonth() + 1
       )}${pStart(date.getDate())}_${pStart(date.getHours())}${pStart(
         date.getMinutes()

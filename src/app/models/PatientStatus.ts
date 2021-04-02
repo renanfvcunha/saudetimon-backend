@@ -18,7 +18,6 @@ import Status from './Status'
 class PatientStatus {
   @OneToOne(() => Patient, patient => patient.patientStatus, {
     primary: true,
-    cascade: ['insert', 'soft-remove'],
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   })

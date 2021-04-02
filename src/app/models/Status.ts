@@ -14,6 +14,9 @@ class Status {
   })
   status?: string
 
+  @Column('text')
+  message?: string
+
   @OneToMany(() => PatientStatus, patientStatus => patientStatus.status)
   patientStatus?: PatientStatus[]
 }

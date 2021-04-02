@@ -9,7 +9,6 @@ import Comorbidity from './Comorbidity'
 class ComorbidityPatient {
   @OneToOne(() => Patient, patient => patient.comorbidityPatient, {
     primary: true,
-    cascade: ['insert', 'soft-remove'],
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   })

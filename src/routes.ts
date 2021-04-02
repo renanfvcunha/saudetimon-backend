@@ -3,15 +3,25 @@ import { Router } from 'express'
 import authMiddleware from './app/middlewares/auth'
 import isAdminMiddleware from './app/middlewares/isAdmin'
 import UserValidator from './app/validators/UserValidator'
+import PatientValidator from './app/validators/PatientValidator'
+import uploadFiles from './config/uploadFiles'
 
 import UserController from './app/controllers/UserController'
 import SessionController from './app/controllers/SessionController'
+import PatientController from './app/controllers/PatientController'
 
 const routes = Router()
 
 routes.get('/', (req, res) => res.json({ msg: 'Sys Vacina API' }))
 
 routes.post('/session', SessionController.store)
+
+routes.post(
+  '/patients',
+  uploadFiles,
+  PatientValidator.store,
+  PatientController.store
+)
 
 routes.use(authMiddleware)
 

@@ -19,6 +19,11 @@ import PatientStatus from './PatientStatus'
   name: 'patients'
 })
 class Patient {
+  public constructor () {
+    this.address = new Address()
+    this.patientStatus = new PatientStatus()
+  }
+
   @PrimaryGeneratedColumn()
   id?: number
 
@@ -36,34 +41,53 @@ class Patient {
   susCard?: string
 
   @Column({
-    length: 100
+    length: 15
   })
-  addressProof?: string
-
-  @Column()
-  phone?: number
-
-  @Column({
-    length: 100
-  })
-  photo?: string
+  phone?: string
 
   @Column({
     default: false
   })
   attended?: boolean
 
-  @OneToOne(() => Address, address => address.patient)
-  address?: Address
+  @Column({
+    length: 100
+  })
+  idDocFront?: string
+
+  @Column({
+    length: 100
+  })
+  idDocVerse?: string
+
+  @Column({
+    length: 100
+  })
+  addressProof?: string
+
+  @Column({
+    length: 100
+  })
+  photo?: string
+
+  @OneToOne(() => Address, address => address.patient, {
+    cascade: ['insert', 'soft-remove']
+  })
+  address: Address
 
   @OneToOne(
     () => ComorbidityPatient,
-    comorbidityPatient => comorbidityPatient.patient
+    comorbidityPatient => comorbidityPatient.patient,
+    {
+      cascade: ['insert', 'soft-remove']
+    }
   )
   comorbidityPatient?: ComorbidityPatient
 
-  @OneToOne(() => PatientStatus, patientStatus => patientStatus.patient)
-  patientStatus?: PatientStatus
+  @OneToOne(() => PatientStatus, patientStatus => patientStatus.patient, {
+    cascade: ['insert', 'soft-remove']
+  })
+  patientStatus: PatientStatus
 
   @ManyToOne(() => Group, group => group.patient, {
     onUpdate: 'CASCADE',

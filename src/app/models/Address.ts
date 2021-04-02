@@ -8,7 +8,6 @@ import Patient from './Patient'
 class Address {
   @OneToOne(() => Patient, patient => patient.address, {
     primary: true,
-    cascade: ['insert', 'soft-remove'],
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
   })
@@ -24,6 +23,11 @@ class Address {
 
   @Column()
   number?: number
+
+  @Column({
+    nullable: true
+  })
+  complement?: string
 
   @Column({
     length: 150
