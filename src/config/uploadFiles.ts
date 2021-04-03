@@ -52,7 +52,36 @@ const uploadFilesCfg = multer({
 })
 
 const uploadFiles = (req: Request, res: Response, next: NextFunction) => {
-  const upload = uploadFilesCfg.array('file')
+  const upload = uploadFilesCfg.fields([
+    {
+      name: 'idDocFront',
+      maxCount: 1
+    },
+    {
+      name: 'idDocVerse',
+      maxCount: 1
+    },
+    {
+      name: 'addressProof',
+      maxCount: 1
+    },
+    {
+      name: 'photo',
+      maxCount: 1
+    },
+    {
+      name: 'medicalReport',
+      maxCount: 1
+    },
+    {
+      name: 'medicalAuthorization',
+      maxCount: 1
+    },
+    {
+      name: 'medicalPrescription',
+      maxCount: 1
+    }
+  ])
 
   upload(req, res, function (err: any) {
     if (err) {

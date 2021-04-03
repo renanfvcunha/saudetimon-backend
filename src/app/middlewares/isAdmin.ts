@@ -18,7 +18,7 @@ export default async (
   })
 
   if (!admin) {
-    return res.status(401).json({ msg: 'Usuário não autorizado!' })
+    return res.status(403).json({ msg: 'Usuário não autorizado!' })
   }
 
   next()

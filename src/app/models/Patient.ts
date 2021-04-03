@@ -22,10 +22,16 @@ class Patient {
   public constructor () {
     this.address = new Address()
     this.patientStatus = new PatientStatus()
+    this.comorbidityPatient = new ComorbidityPatient()
   }
 
   @PrimaryGeneratedColumn()
   id?: number
+
+  @Column({
+    length: 100
+  })
+  name?: string
 
   @Column({
     length: 15,
@@ -82,7 +88,7 @@ class Patient {
       cascade: ['insert', 'soft-remove']
     }
   )
-  comorbidityPatient?: ComorbidityPatient
+  comorbidityPatient: ComorbidityPatient
 
   @OneToOne(() => PatientStatus, patientStatus => patientStatus.patient, {
     cascade: ['insert', 'soft-remove']
