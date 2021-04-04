@@ -9,6 +9,7 @@ import uploadFiles from './config/uploadFiles'
 import UserController from './app/controllers/UserController'
 import SessionController from './app/controllers/SessionController'
 import PatientController from './app/controllers/PatientController'
+import PatientStatusController from './app/controllers/PatientStatusController'
 
 const routes = Router()
 
@@ -22,9 +23,20 @@ routes.post(
   PatientValidator.store,
   PatientController.store
 )
+// routes.put('/patients/:cpf', PatientController.update)
 
+routes.get('/patients/status/:cpf', PatientController.getStatus)
+
+/** Middleware de autenticação. */
 routes.use(authMiddleware)
 
+routes.get('/patients', PatientController.index)
+
+routes.get('/patients_status', PatientStatusController.index)
+
+routes.patch('/patients/status/:id', PatientController.changeStatus)
+
+/** Middleware de verificação de admin */
 routes.use(isAdminMiddleware)
 
 routes.get('/users', UserController.index)

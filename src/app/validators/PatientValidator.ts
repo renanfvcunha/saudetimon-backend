@@ -43,7 +43,7 @@ class PatientValidator {
     }
 
     try {
-      /** Verificando se os campos obrigatórios foram preenchidos */
+      /** Verificando se os campos e arquivos obrigatórios foram preenchidos */
       if (
         !name ||
         !cpf ||
@@ -52,7 +52,11 @@ class PatientValidator {
         !number ||
         !reference ||
         !neighborhood ||
-        !phone
+        !phone ||
+        !files.idDocFront ||
+        !files.idDocVerse ||
+        !files.addressProof ||
+        !files.photo
       ) {
         dropFiles()
         return res.status(400).json({

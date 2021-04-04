@@ -17,7 +17,9 @@ class Status {
   @Column('text')
   message?: string
 
-  @OneToMany(() => PatientStatus, patientStatus => patientStatus.status)
+  @OneToMany(() => PatientStatus, patientStatus => patientStatus.status, {
+    cascade: true
+  })
   patientStatus?: PatientStatus[]
 }
 
