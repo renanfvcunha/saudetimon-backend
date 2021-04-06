@@ -10,6 +10,7 @@ import UserController from './app/controllers/UserController'
 import SessionController from './app/controllers/SessionController'
 import PatientController from './app/controllers/PatientController'
 import PatientStatusController from './app/controllers/PatientStatusController'
+import GroupController from './app/controllers/GroupController'
 
 const routes = Router()
 
@@ -24,15 +25,17 @@ routes.post(
   PatientController.store
 )
 // routes.put('/patients/:cpf', PatientController.update)
-
+routes.get('/patients/checkupdatable/:cpf', PatientController.checkUpdatable)
 routes.get('/patients/status/:cpf', PatientController.getStatus)
+
+routes.get('/groups', GroupController.index)
 
 /** Middleware de autenticação. */
 routes.use(authMiddleware)
 
 routes.get('/patients', PatientController.index)
 
-routes.get('/patients_status', PatientStatusController.index)
+routes.get('/patients/status', PatientStatusController.index)
 
 routes.patch('/patients/status/:id', PatientController.changeStatus)
 

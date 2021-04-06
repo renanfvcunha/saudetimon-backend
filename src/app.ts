@@ -1,5 +1,6 @@
 import express from 'express'
 import { createConnection } from 'typeorm'
+import cors from 'cors'
 
 import routes from './routes'
 
@@ -15,6 +16,12 @@ class App {
 
   private middlewares () {
     this.express.use(express.json())
+    this.express.use(
+      cors({
+        origin: process.env.CLIENT_URL,
+        exposedHeaders: ['Total-Count', 'Page']
+      })
+    )
   }
 
   private routes () {

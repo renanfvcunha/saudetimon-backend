@@ -70,6 +70,16 @@ class Patient {
   })
   photo?: string
 
+  @Column({
+    default: false
+  })
+  updatable?: boolean
+
+  @Column({
+    default: false
+  })
+  vaccinated?: boolean
+
   @OneToOne(() => Address, address => address.patient, {
     cascade: ['insert', 'soft-remove']
   })

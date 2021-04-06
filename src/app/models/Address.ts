@@ -25,7 +25,8 @@ class Address {
   number?: number
 
   @Column({
-    nullable: true
+    nullable: true,
+    length: 150
   })
   complement?: string
 

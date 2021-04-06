@@ -24,7 +24,7 @@ class SessionController {
       })
 
       if (!verifyUser) {
-        return res.status(401).json({ msg: 'Usuário incorretos' })
+        return res.status(401).json({ msg: 'Usuário e/ou senha incorretos' })
       }
 
       /** Verificando se senha está correta */
