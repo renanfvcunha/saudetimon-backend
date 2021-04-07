@@ -186,6 +186,52 @@ class PatientController {
     }
   }
 
+  public async show (req: Request, res: Response) {
+    const { id } = req.params
+
+    try {
+      const patient = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select([
+          'patient.id',
+          'patient.name',
+          'patient.cpf',
+          'patient.susCard',
+          'patient.phone',
+          'patient.idDocFront',
+          'patient.idDocVerse',
+          'patient.addressProof',
+          'patient.photo',
+          'patient.createdAt',
+          'group.slug',
+          'group.group',
+          'address.street',
+          'address.number',
+          'address.complement',
+          'address.reference',
+          'address.neighborhood',
+          'comorbidityPatient',
+          'patientStatus.message',
+          'status.id',
+          'status.status'
+        ])
+        .leftJoin('patient.group', 'group')
+        .leftJoin('patient.address', 'address')
+        .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
+        .leftJoin('patient.patientStatus', 'patientStatus')
+        .leftJoin('patientStatus.status', 'status')
+        .where('patient.id = :id', { id })
+        .getOne()
+
+      return res.json(patient)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
   public async getStatus (req: Request, res: Response) {
     const { cpf } = req.params
 

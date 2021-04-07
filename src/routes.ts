@@ -34,6 +34,7 @@ routes.get('/groups', GroupController.index)
 routes.use(authMiddleware)
 
 routes.get('/patients', PatientController.index)
+routes.get('/patients/:id', PatientController.show)
 
 routes.get('/patients/status', PatientStatusController.index)
 

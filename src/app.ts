@@ -1,6 +1,7 @@
 import express from 'express'
 import { createConnection } from 'typeorm'
 import cors from 'cors'
+import { resolve } from 'path'
 
 import routes from './routes'
 
@@ -25,6 +26,10 @@ class App {
   }
 
   private routes () {
+    this.express.use(
+      '/uploads',
+      express.static(resolve(__dirname, '..', 'uploads'))
+    )
     this.express.use(routes)
   }
 
