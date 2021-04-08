@@ -12,7 +12,7 @@ import PatientStatus from '../models/PatientStatus'
 
 class PatientController {
   public async index (req: Request, res: Response) {
-    const { per_page, page, idGroup } = req.query
+    const { per_page, page, idStatus, idGroup } = req.query
 
     try {
       if (per_page && page) {
@@ -20,9 +20,11 @@ class PatientController {
           const totalCount = await getRepository(Patient)
             .createQueryBuilder('patient')
             .select(['patient.id'])
+            .innerJoin('patient.patientStatus', 'patientStatus')
+            .innerJoin('patientStatus.status', 'status')
             .innerJoin('patient.group', 'group')
-            .where('patient.attended = false')
-            .andWhere('group.id = :idGroup', { idGroup })
+            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
+            .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
             .getCount()
 
           const patients = await getRepository(Patient)
@@ -35,9 +37,11 @@ class PatientController {
               'patient.updatedAt',
               'group.id'
             ])
+            .innerJoin('patient.patientStatus', 'patientStatus')
+            .innerJoin('patientStatus.status', 'status')
             .innerJoin('patient.group', 'group')
-            .where('patient.attended = false')
-            .andWhere('group.id = :idGroup', { idGroup })
+            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
+            .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
             .orderBy('patient.updatedAt')
@@ -50,9 +54,13 @@ class PatientController {
 
           return res.json(patients)
         } else {
-          const totalCount = await getRepository(Patient).count({
-            where: { attended: false }
-          })
+          const totalCount = await getRepository(Patient)
+            .createQueryBuilder('patient')
+            .select('patient.id')
+            .innerJoin('patient.patientStatus', 'patientStatus')
+            .innerJoin('patientStatus.status', 'status')
+            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
+            .getCount()
 
           const patients = await getRepository(Patient)
             .createQueryBuilder('patient')
@@ -63,7 +71,9 @@ class PatientController {
               'patient.createdAt',
               'patient.updatedAt'
             ])
-            .where('patient.attended = false')
+            .innerJoin('patient.patientStatus', 'patientStatus')
+            .innerJoin('patientStatus.status', 'status')
+            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
             .orderBy('patient.updatedAt')
