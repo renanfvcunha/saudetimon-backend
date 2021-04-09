@@ -7,12 +7,66 @@ import IUser from '../../typescript/IUser'
 
 class UserController {
   public async index (req: Request, res: Response) {
-    try {
-      const users = await getRepository(User).find({
-        select: ['id', 'name', 'username', 'admin']
-      })
+    const { per_page, page, search } = req.query
 
-      return res.json(users)
+    try {
+      if (per_page && page) {
+        if (search) {
+          const totalCount = await getRepository(User)
+            .createQueryBuilder('user')
+            .where('name like :name', { name: '%' + search + '%' })
+            .orWhere('username like :username', {
+              username: '%' + search + '%'
+            })
+            .getCount()
+
+          const users = await getRepository(User)
+            .createQueryBuilder('user')
+            .select([
+              'user.id',
+              'user.name',
+              'user.username',
+              'user.admin',
+              'user.createdAt'
+            ])
+            .where('name like :name', { name: '%' + search + '%' })
+            .orWhere('username like :username', {
+              username: '%' + search + '%'
+            })
+            .take(Number(per_page))
+            .skip(Number(per_page) * Number(page))
+            .getMany()
+
+          res.header({
+            'Total-Count': totalCount,
+            Page: page
+          })
+
+          return res.json(users)
+        } else {
+          const totalCount = await getRepository(User).count()
+
+          const users = await getRepository(User).find({
+            select: ['id', 'name', 'username', 'admin', 'createdAt'],
+            take: Number(per_page),
+            skip: Number(per_page) * Number(page),
+            order: { createdAt: 'DESC' }
+          })
+
+          res.header({
+            'Total-Count': totalCount,
+            Page: page
+          })
+
+          return res.json(users)
+        }
+      } else {
+        const users = await getRepository(User).find({
+          select: ['id', 'name', 'username', 'admin', 'createdAt']
+        })
+
+        return res.json(users)
+      }
     } catch (err) {
       console.error(err)
       return res.status(500).json({
