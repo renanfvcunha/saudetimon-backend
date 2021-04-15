@@ -1,5 +1,5 @@
 {
-  "name": "sys-vacina",
+  "name": "saude-timon",
   "version": "0.1.0",
   "description": "App to collect data for helping on covid vaccination",
   "main": "server.js",

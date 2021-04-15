@@ -112,7 +112,7 @@ class PatientController {
       name,
       cpf,
       susCard,
-      idGroup,
+      groupSlug,
       street,
       number,
       complement,
@@ -125,7 +125,9 @@ class PatientController {
 
     try {
       /** Buscando grupo informado no banco de dados */
-      const group = await getRepository(Group).findOne(idGroup)
+      const group = await getRepository(Group).findOne({
+        where: { slug: groupSlug }
+      })
 
       /** Instanciando classes */
       const patient = new Patient()
@@ -135,7 +137,9 @@ class PatientController {
 
       address.street = street
       address.number = number
-      address.complement = complement
+      if (complement) {
+        address.complement = complement
+      }
       address.reference = reference
       address.neighborhood = neighborhood
 
@@ -167,8 +171,10 @@ class PatientController {
 
       patient.name = name
       patient.cpf = cpf
-      patient.susCard = susCard
-      patient.group = { id: idGroup }
+      if (susCard) {
+        patient.susCard = susCard
+      }
+      patient.group = { id: group?.id }
       patient.phone = phone
       patient.idDocFront = files.idDocFront[0].filename
       patient.idDocVerse = files.idDocVerse[0].filename
@@ -328,7 +334,7 @@ class PatientController {
       name,
       cpf,
       susCard,
-      idGroup,
+      groupSlug,
       street,
       number,
       complement,
@@ -351,7 +357,9 @@ class PatientController {
       }
 
       /** Buscando grupo informado no banco de dados */
-      const group = await getRepository(Group).findOne(idGroup)
+      const group = await getRepository(Group).findOne({
+        where: { slug: groupSlug }
+      })
 
       /** Instanciando classes */
       const patient = new Patient()
@@ -361,7 +369,9 @@ class PatientController {
 
       address.street = street
       address.number = number
-      address.complement = complement
+      if (complement) {
+        address.complement = complement
+      }
       address.reference = reference
       address.neighborhood = neighborhood
 
@@ -394,8 +404,10 @@ class PatientController {
       patient.id = Number(id)
       patient.name = name
       patient.cpf = cpf
-      patient.susCard = susCard
-      patient.group = { id: idGroup }
+      if (susCard) {
+        patient.susCard = susCard
+      }
+      patient.group = { id: group?.id }
       patient.phone = phone
       patient.idDocFront = files.idDocFront[0].filename
       patient.idDocVerse = files.idDocVerse[0].filename

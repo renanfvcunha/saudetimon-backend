@@ -14,7 +14,7 @@ import GroupController from './app/controllers/GroupController'
 
 const routes = Router()
 
-routes.get('/', (req, res) => res.json({ msg: 'Sys Vacina API' }))
+routes.get('/', (req, res) => res.json({ msg: 'Saúde Timon API' }))
 
 routes.post('/session', SessionController.store)
 

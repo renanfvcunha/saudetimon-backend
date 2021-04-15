@@ -3,7 +3,7 @@ export default interface IPatient {
   name: string
   cpf: string
   susCard?: string
-  idGroup: number
+  groupSlug: string
   idComorbidity?: number
   street: string
   number: number

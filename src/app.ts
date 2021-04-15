@@ -19,7 +19,15 @@ class App {
     this.express.use(express.json())
     this.express.use(
       cors({
-        origin: process.env.CLIENT_URL,
+        origin: function (origin, callback) {
+          if (
+            [process.env.CLIENT_URL, process.env.PWA_URL].indexOf(origin) !== -1
+          ) {
+            callback(null, true)
+          } else {
+            callback(new Error('Not allowed by CORS'))
+          }
+        },
         exposedHeaders: ['Total-Count', 'Page']
       })
     )

@@ -14,7 +14,7 @@ class PatientValidator {
       name,
       cpf,
       susCard,
-      idGroup,
+      groupSlug,
       street,
       number,
       reference,
@@ -27,10 +27,18 @@ class PatientValidator {
     const dropFiles = () => {
       const uploadsPath = resolve(__dirname, '..', '..', '..', 'uploads')
 
-      unlinkSync(resolve(uploadsPath, files.idDocFront[0].filename))
-      unlinkSync(resolve(uploadsPath, files.idDocVerse[0].filename))
-      unlinkSync(resolve(uploadsPath, files.addressProof[0].filename))
-      unlinkSync(resolve(uploadsPath, files.photo[0].filename))
+      if (files.idDocFront) {
+        unlinkSync(resolve(uploadsPath, files.idDocFront[0].filename))
+      }
+      if (files.idDocVerse) {
+        unlinkSync(resolve(uploadsPath, files.idDocVerse[0].filename))
+      }
+      if (files.addressProof) {
+        unlinkSync(resolve(uploadsPath, files.addressProof[0].filename))
+      }
+      if (files.photo) {
+        unlinkSync(resolve(uploadsPath, files.photo[0].filename))
+      }
       if (files.medicalReport) {
         unlinkSync(resolve(uploadsPath, files.medicalReport[0].filename))
       }
@@ -47,7 +55,7 @@ class PatientValidator {
       if (
         !name ||
         !cpf ||
-        !idGroup ||
+        !groupSlug ||
         !street ||
         !number ||
         !reference ||
@@ -65,7 +73,9 @@ class PatientValidator {
       }
 
       /** Buscando grupo informado no banco de dados e verificando se existe */
-      const group = await getRepository(Group).findOne(idGroup)
+      const group = await getRepository(Group).findOne({
+        where: { slug: groupSlug }
+      })
 
       if (!group) {
         dropFiles()
