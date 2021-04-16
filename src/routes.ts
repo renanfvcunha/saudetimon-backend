@@ -11,6 +11,7 @@ import SessionController from './app/controllers/SessionController'
 import PatientController from './app/controllers/PatientController'
 import PatientStatusController from './app/controllers/PatientStatusController'
 import GroupController from './app/controllers/GroupController'
+import ComorbidityController from './app/controllers/ComorbidityController'
 
 const routes = Router()
 
@@ -29,6 +30,8 @@ routes.get('/patients/checkupdatable/:cpf', PatientController.checkUpdatable)
 routes.get('/patients/status/:cpf', PatientController.getStatus)
 
 routes.get('/groups', GroupController.index)
+
+routes.get('/comorbidities', ComorbidityController.index)
 
 /** Middleware de autenticação. */
 routes.use(authMiddleware)

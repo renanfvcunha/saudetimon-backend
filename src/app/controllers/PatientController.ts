@@ -252,21 +252,42 @@ class PatientController {
     const { cpf } = req.params
 
     try {
-      const response = await getRepository(Patient)
+      const approveds = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select(['patient.id'])
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .where('status.id = 2')
+        .andWhere('patient.vaccinated = false')
+        .orderBy('patient.updatedAt')
+        .getMany()
+
+      const patient = await getRepository(Patient)
         .createQueryBuilder('patient')
         .select([
+          'patient.id',
           'patient.cpf',
           'patientStatus.message',
           'patientStatus.status',
           'status.id',
           'status.message'
         ])
-        .leftJoin('patient.patientStatus', 'patientStatus')
-        .leftJoin('patientStatus.status', 'status')
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
         .where('patient.cpf = :cpf', { cpf })
         .getOne()
 
-      return res.json(response)
+      if (
+        patient?.patientStatus?.status &&
+        patient?.patientStatus?.status.id === 2
+      ) {
+        const position =
+          approveds.findIndex(approved => approved.id === patient.id) + 1
+
+        return res.json({ patient, position })
+      } else {
+        return res.json({ patient })
+      }
     } catch (err) {
       console.error(err)
       return res.status(500).json({

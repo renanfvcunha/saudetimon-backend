@@ -20,12 +20,18 @@ class App {
     this.express.use(
       cors({
         origin: function (origin, callback) {
-          if (
-            [process.env.CLIENT_URL, process.env.PWA_URL].indexOf(origin) !== -1
-          ) {
+          if (process.env.NODE_ENV !== 'production') {
             callback(null, true)
           } else {
-            callback(new Error('Not allowed by CORS'))
+            if (
+              !origin ||
+              [process.env.CLIENT_URL, process.env.PWA_URL].indexOf(origin) !==
+                -1
+            ) {
+              callback(null, true)
+            } else {
+              callback(new Error('Not allowed by CORS'))
+            }
           }
         },
         exposedHeaders: ['Total-Count', 'Page']

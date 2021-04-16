@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { getRepository } from 'typeorm'
-import { resolve } from 'path'
-import { unlinkSync } from 'fs'
+import path from 'path'
+import { unlink } from 'fs'
 
 import IPatient from '../../typescript/IPatient'
 import Patient from '../models/Patient'
@@ -24,31 +24,52 @@ class PatientValidator {
     }: IPatient = req.body
     const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
-    const dropFiles = () => {
-      const uploadsPath = resolve(__dirname, '..', '..', '..', 'uploads')
+    const dropFiles = () =>
+      new Promise<void>((resolve, reject) => {
+        const uploadsPath = path.resolve(__dirname, '..', '..', '..', 'uploads')
 
-      if (files.idDocFront) {
-        unlinkSync(resolve(uploadsPath, files.idDocFront[0].filename))
-      }
-      if (files.idDocVerse) {
-        unlinkSync(resolve(uploadsPath, files.idDocVerse[0].filename))
-      }
-      if (files.addressProof) {
-        unlinkSync(resolve(uploadsPath, files.addressProof[0].filename))
-      }
-      if (files.photo) {
-        unlinkSync(resolve(uploadsPath, files.photo[0].filename))
-      }
-      if (files.medicalReport) {
-        unlinkSync(resolve(uploadsPath, files.medicalReport[0].filename))
-      }
-      if (files.medicalAuthorization) {
-        unlinkSync(resolve(uploadsPath, files.medicalAuthorization[0].filename))
-      }
-      if (files.medicalPrescription) {
-        unlinkSync(resolve(uploadsPath, files.medicalPrescription[0].filename))
-      }
-    }
+        if (files.idDocFront) {
+          unlink(path.resolve(uploadsPath, files.idDocFront[0].filename), err =>
+            reject(err)
+          )
+        }
+        if (files.idDocVerse) {
+          unlink(path.resolve(uploadsPath, files.idDocVerse[0].filename), err =>
+            reject(err)
+          )
+        }
+        if (files.addressProof) {
+          unlink(
+            path.resolve(uploadsPath, files.addressProof[0].filename),
+            err => reject(err)
+          )
+        }
+        if (files.photo) {
+          unlink(path.resolve(uploadsPath, files.photo[0].filename), err =>
+            reject(err)
+          )
+        }
+        if (files.medicalReport) {
+          unlink(
+            path.resolve(uploadsPath, files.medicalReport[0].filename),
+            err => reject(err)
+          )
+        }
+        if (files.medicalAuthorization) {
+          unlink(
+            path.resolve(uploadsPath, files.medicalAuthorization[0].filename),
+            err => reject(err)
+          )
+        }
+        if (files.medicalPrescription) {
+          unlink(
+            path.resolve(uploadsPath, files.medicalPrescription[0].filename),
+            err => reject(err)
+          )
+        }
+
+        resolve()
+      })
 
     try {
       /** Verificando se os campos e arquivos obrigatórios foram preenchidos */
@@ -66,9 +87,10 @@ class PatientValidator {
         !files.addressProof ||
         !files.photo
       ) {
-        dropFiles()
+        await dropFiles()
         return res.status(400).json({
-          msg: 'Verifique se todos os campos obrigatórios foram preenchidos.'
+          msg:
+            'Verifique se todos os campos e anexos obrigatórios foram preenchidos.'
         })
       }
 
@@ -78,7 +100,7 @@ class PatientValidator {
       })
 
       if (!group) {
-        dropFiles()
+        await dropFiles()
         return res
           .status(400)
           .json({ msg: 'O grupo informado não foi encontrado.' })
@@ -90,7 +112,7 @@ class PatientValidator {
         group.slug === 'paciente_renal'
       ) {
         if (!files.medicalReport || !files.medicalAuthorization) {
-          dropFiles()
+          await dropFiles()
           return res.status(400).json({
             msg: 'É necessário enviar laudo e autorização médicas.'
           })
@@ -99,13 +121,13 @@ class PatientValidator {
 
       if (group.slug === 'comorbidades') {
         if (!idComorbidity) {
-          dropFiles()
+          await dropFiles()
           return res.status(400).json({
             msg: 'É necessário especificar a comorbidade.'
           })
         }
         if (!files.medicalReport && !files.medicalPrescription) {
-          dropFiles()
+          await dropFiles()
           return res.status(400).json({
             msg: 'É necessário enviar um laudo ou alguma prescrição médica.'
           })
@@ -119,14 +141,14 @@ class PatientValidator {
       })
 
       if (cpfCheck) {
-        dropFiles()
+        await dropFiles()
         return res
           .status(400)
           .json({ msg: 'O CPF informado já foi cadastrado.' })
       }
 
       if (susCard && susCardCheck) {
-        dropFiles()
+        await dropFiles()
         return res
           .status(400)
           .json({ msg: 'O Cartão SUS informado já foi cadastrado.' })
