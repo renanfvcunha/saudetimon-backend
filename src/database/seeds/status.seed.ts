@@ -9,7 +9,7 @@ export const StatusSeed = [
       'Seu cadastro foi aprovado. Verifique sua posição na fila e fique atento(a) à chamada.'
   },
   {
-    status: 'Não Aprovado',
+    status: 'Negado',
     message:
       'Seu cadastro não foi aprovado. Verifique o motivo abaixo e, se possível, corrija as informações.'
   }

@@ -252,39 +252,51 @@ class PatientController {
     const { cpf } = req.params
 
     try {
-      const approveds = await getRepository(Patient)
-        .createQueryBuilder('patient')
-        .select(['patient.id'])
-        .innerJoin('patient.patientStatus', 'patientStatus')
-        .innerJoin('patientStatus.status', 'status')
-        .where('status.id = 2')
-        .andWhere('patient.vaccinated = false')
-        .orderBy('patient.updatedAt')
-        .getMany()
-
       const patient = await getRepository(Patient)
         .createQueryBuilder('patient')
         .select([
           'patient.id',
           'patient.cpf',
+          'group.id',
+          'group.group',
           'patientStatus.message',
           'patientStatus.status',
           'status.id',
+          'status.status',
           'status.message'
         ])
+        .innerJoin('patient.group', 'group')
         .innerJoin('patient.patientStatus', 'patientStatus')
         .innerJoin('patientStatus.status', 'status')
         .where('patient.cpf = :cpf', { cpf })
         .getOne()
 
+      if (!patient) {
+        return res
+          .status(404)
+          .json({ msg: 'CPF não encontrado na base de dados.' })
+      }
+
+      const approveds = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select(['patient.id'])
+        .innerJoin('patient.group', 'group')
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .where('group.id = :groupId', { groupId: patient.group?.id })
+        .andWhere('status.id = 2')
+        .andWhere('patient.vaccinated = false')
+        .orderBy('patient.updatedAt')
+        .getMany()
+
       if (
-        patient?.patientStatus?.status &&
-        patient?.patientStatus?.status.id === 2
+        patient.patientStatus?.status &&
+        patient.patientStatus?.status.id === 2
       ) {
         const position =
           approveds.findIndex(approved => approved.id === patient.id) + 1
 
-        return res.json({ patient, position })
+        return res.json({ patient, position, approveds: approveds.length })
       } else {
         return res.json({ patient })
       }

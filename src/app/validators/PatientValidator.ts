@@ -29,42 +29,56 @@ class PatientValidator {
         const uploadsPath = path.resolve(__dirname, '..', '..', '..', 'uploads')
 
         if (files.idDocFront) {
-          unlink(path.resolve(uploadsPath, files.idDocFront[0].filename), err =>
-            reject(err)
+          unlink(
+            path.resolve(uploadsPath, files.idDocFront[0].filename),
+            err => {
+              if (err) reject(err)
+            }
           )
         }
         if (files.idDocVerse) {
-          unlink(path.resolve(uploadsPath, files.idDocVerse[0].filename), err =>
-            reject(err)
+          unlink(
+            path.resolve(uploadsPath, files.idDocVerse[0].filename),
+            err => {
+              if (err) reject(err)
+            }
           )
         }
         if (files.addressProof) {
           unlink(
             path.resolve(uploadsPath, files.addressProof[0].filename),
-            err => reject(err)
+            err => {
+              if (err) reject(err)
+            }
           )
         }
         if (files.photo) {
-          unlink(path.resolve(uploadsPath, files.photo[0].filename), err =>
-            reject(err)
-          )
+          unlink(path.resolve(uploadsPath, files.photo[0].filename), err => {
+            if (err) reject(err)
+          })
         }
         if (files.medicalReport) {
           unlink(
             path.resolve(uploadsPath, files.medicalReport[0].filename),
-            err => reject(err)
+            err => {
+              if (err) reject(err)
+            }
           )
         }
         if (files.medicalAuthorization) {
           unlink(
             path.resolve(uploadsPath, files.medicalAuthorization[0].filename),
-            err => reject(err)
+            err => {
+              if (err) reject(err)
+            }
           )
         }
         if (files.medicalPrescription) {
           unlink(
             path.resolve(uploadsPath, files.medicalPrescription[0].filename),
-            err => reject(err)
+            err => {
+              if (err) reject(err)
+            }
           )
         }
 
