@@ -5,6 +5,7 @@ import isAdminMiddleware from './app/middlewares/isAdmin'
 import UserValidator from './app/validators/UserValidator'
 import PatientValidator from './app/validators/PatientValidator'
 import uploadFiles from './config/uploadFiles'
+import resizeImg from './app/middlewares/resizeImg'
 
 import UserController from './app/controllers/UserController'
 import SessionController from './app/controllers/SessionController'
@@ -24,6 +25,7 @@ routes.post(
   '/patients',
   uploadFiles,
   PatientValidator.store,
+  resizeImg,
   PatientController.store
 )
 // routes.put('/patients/:cpf', PatientController.update)

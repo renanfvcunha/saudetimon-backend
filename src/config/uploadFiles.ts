@@ -8,7 +8,7 @@ function pStart (num: number) {
 
 const uploadFilesCfg = multer({
   storage: multer.diskStorage({
-    destination: resolve(__dirname, '..', '..', 'uploads'),
+    destination: resolve(__dirname, '..', '..', 'temp'),
     filename (req, file, cb) {
       const ext = file.originalname.split('.').pop()
 
