@@ -1,7 +1,7 @@
 import { Express } from 'express'
 import sharp from 'sharp'
 import { resolve } from 'path'
-import { unlink } from 'fs'
+import { unlink, rename } from 'fs'
 
 const resizeImg = async (file: Express.Multer.File, size: number) => {
   const info = await sharp(file.path).metadata()
@@ -55,6 +55,10 @@ const resizeImg = async (file: Express.Multer.File, size: number) => {
       .catch(err => {
         if (err) throw err
       })
+  } else {
+    rename(file.path, resolve(uploadsPath, file.filename), err => {
+      if (err) throw err
+    })
   }
 }
 

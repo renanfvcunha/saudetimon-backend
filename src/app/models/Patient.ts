@@ -81,7 +81,7 @@ class Patient {
   vaccinated?: boolean
 
   @OneToOne(() => Address, address => address.patient, {
-    cascade: ['insert', 'soft-remove']
+    cascade: true
   })
   address?: Address
 
@@ -89,7 +89,7 @@ class Patient {
     () => ComorbidityPatient,
     comorbidityPatient => comorbidityPatient.patient,
     {
-      cascade: ['insert', 'soft-remove']
+      cascade: true
     }
   )
   comorbidityPatient?: ComorbidityPatient

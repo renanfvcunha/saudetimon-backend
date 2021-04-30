@@ -10,7 +10,6 @@ import resizeImg from './app/middlewares/resizeImg'
 import UserController from './app/controllers/UserController'
 import SessionController from './app/controllers/SessionController'
 import PatientController from './app/controllers/PatientController'
-import PatientStatusController from './app/controllers/PatientStatusController'
 import GroupController from './app/controllers/GroupController'
 import ComorbidityController from './app/controllers/ComorbidityController'
 import FrequentDoubtController from './app/controllers/FrequentDoubtController'
@@ -28,9 +27,15 @@ routes.post(
   resizeImg,
   PatientController.store
 )
-// routes.put('/patients/:cpf', PatientController.update)
-routes.get('/patients/checkupdatable/:cpf', PatientController.checkUpdatable)
 routes.get('/patients/status/:cpf', PatientController.getStatus)
+routes.get('/patients/me/:cpf', PatientController.me)
+routes.put(
+  '/patients/:id',
+  uploadFiles,
+  PatientValidator.update,
+  resizeImg,
+  PatientController.update
+)
 
 routes.get('/groups', GroupController.index)
 
@@ -43,8 +48,6 @@ routes.use(authMiddleware)
 
 routes.get('/patients', PatientController.index)
 routes.get('/patients/:id', PatientController.show)
-
-routes.get('/patients/status', PatientStatusController.index)
 
 routes.patch('/patients/status/:id', PatientController.changeStatus)
 

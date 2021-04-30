@@ -44,7 +44,7 @@ class PatientController {
             .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
-            .orderBy('patient.updatedAt')
+            .orderBy('patient.createdAt')
             .getMany()
 
           res.header({
@@ -76,7 +76,7 @@ class PatientController {
             .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
-            .orderBy('patient.updatedAt')
+            .orderBy('patient.createdAt')
             .getMany()
 
           res.header({
@@ -248,6 +248,40 @@ class PatientController {
     }
   }
 
+  public async me (req: Request, res: Response) {
+    const { cpf } = req.params
+
+    try {
+      const patient = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select([
+          'patient.id as id',
+          'patient.name as name',
+          'patient.cpf as cpf',
+          'patient.susCard as "susCard"',
+          'patient.phone as phone',
+          'address.street as street',
+          'address.number as number',
+          'address.complement as complement',
+          'address.reference as reference',
+          'address.neighborhood as neighborhood',
+          'comorbidityPatient.idComorbidity'
+        ])
+        .innerJoin('patient.address', 'address')
+        .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
+        .leftJoin('comorbidityPatient.comorbidity', 'comorbidity')
+        .where('patient.cpf = :cpf', { cpf })
+        .getRawOne()
+
+      return res.json(patient)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
   public async getStatus (req: Request, res: Response) {
     const { cpf } = req.params
 
@@ -258,6 +292,7 @@ class PatientController {
           'patient.id',
           'patient.cpf',
           'group.id',
+          'group.slug',
           'group.group',
           'patientStatus.message',
           'patientStatus.status',
@@ -308,30 +343,6 @@ class PatientController {
     }
   }
 
-  public async checkUpdatable (req: Request, res: Response) {
-    const { cpf } = req.params
-
-    try {
-      const patientUpdatable = await getRepository(Patient).findOne({
-        where: { cpf, updatable: true }
-      })
-
-      if (!patientUpdatable) {
-        return res.status(401).json({
-          msg:
-            'Seu cadastro ainda está em análise ou já foi aprovado, portanto não é possível editá-lo.'
-        })
-      }
-    } catch (err) {
-      console.error(err)
-      return res.status(500).json({
-        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
-      })
-    }
-
-    return res.json()
-  }
-
   public async changeStatus (req: Request, res: Response) {
     const { id } = req.params
     const { idStatus, message }: IPatientStatus = req.body
@@ -367,7 +378,6 @@ class PatientController {
       name,
       cpf,
       susCard,
-      groupSlug,
       street,
       number,
       complement,
@@ -379,20 +389,13 @@ class PatientController {
     const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
     try {
-      const patientUpdatable = await getRepository(Patient).findOne({
-        where: { cpf, updatable: true }
-      })
-
-      if (!patientUpdatable) {
-        return res.status(401).json({
-          msg: 'Paciente não atualizável.'
-        })
-      }
-
-      /** Buscando grupo informado no banco de dados */
-      const group = await getRepository(Group).findOne({
-        where: { slug: groupSlug }
-      })
+      /** Buscando grupo no banco de dados */
+      const group = await getRepository(Group)
+        .createQueryBuilder('group')
+        .select('group.slug')
+        .innerJoin('group.patient', 'patient')
+        .where('patient.id = :id', { id })
+        .getOne()
 
       /** Instanciando classes */
       const patient = new Patient()
@@ -442,10 +445,18 @@ class PatientController {
       }
       patient.group = { id: group?.id }
       patient.phone = phone
-      patient.idDocFront = files.idDocFront[0].filename
-      patient.idDocVerse = files.idDocVerse[0].filename
-      patient.addressProof = files.addressProof[0].filename
-      patient.photo = files.photo[0].filename
+      if (files.idDocFront) {
+        patient.idDocFront = files.idDocFront[0].filename
+      }
+      if (files.idDocVerse) {
+        patient.idDocVerse = files.idDocVerse[0].filename
+      }
+      if (files.addressProof) {
+        patient.addressProof = files.addressProof[0].filename
+      }
+      if (files.photo) {
+        patient.photo = files.photo[0].filename
+      }
       patient.attended = false
       patient.updatable = false
       patient.address = address
