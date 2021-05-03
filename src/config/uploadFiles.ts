@@ -14,11 +14,7 @@ const uploadFilesCfg = multer({
 
       let prefix: string
 
-      const imgTypes = ['png', 'jpg', 'jpeg'].find(
-        img => img === ext?.toLowerCase()
-      )
-
-      if (imgTypes) {
+      if (file.mimetype !== 'application/pdf') {
         prefix = 'IMG'
       } else {
         prefix = 'DOC'

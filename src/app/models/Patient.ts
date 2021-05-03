@@ -46,11 +46,6 @@ class Patient {
   phone?: string
 
   @Column({
-    default: false
-  })
-  attended?: boolean
-
-  @Column({
     length: 100
   })
   idDocFront?: string
@@ -69,11 +64,6 @@ class Patient {
     length: 100
   })
   photo?: string
-
-  @Column({
-    default: false
-  })
-  updatable?: boolean
 
   @Column({
     default: false

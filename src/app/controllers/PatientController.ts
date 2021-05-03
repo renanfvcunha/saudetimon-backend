@@ -12,7 +12,7 @@ import PatientStatus from '../models/PatientStatus'
 
 class PatientController {
   public async index (req: Request, res: Response) {
-    const { per_page, page, idStatus, idGroup } = req.query
+    const { per_page, page, idStatus, idGroup, vaccinated } = req.query
 
     try {
       if (per_page && page) {
@@ -25,6 +25,9 @@ class PatientController {
             .innerJoin('patient.group', 'group')
             .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
             .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
+            .andWhere('patient.vaccinated = :vaccinated', {
+              vaccinated: vaccinated || false
+            })
             .getCount()
 
           const patients = await getRepository(Patient)
@@ -42,6 +45,9 @@ class PatientController {
             .innerJoin('patient.group', 'group')
             .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
             .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
+            .andWhere('patient.vaccinated = :vaccinated', {
+              vaccinated: vaccinated || false
+            })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
             .orderBy('patient.createdAt')
@@ -60,6 +66,9 @@ class PatientController {
             .innerJoin('patient.patientStatus', 'patientStatus')
             .innerJoin('patientStatus.status', 'status')
             .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
+            .andWhere('patient.vaccinated = :vaccinated', {
+              vaccinated: vaccinated || false
+            })
             .getCount()
 
           const patients = await getRepository(Patient)
@@ -74,6 +83,9 @@ class PatientController {
             .innerJoin('patient.patientStatus', 'patientStatus')
             .innerJoin('patientStatus.status', 'status')
             .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
+            .andWhere('patient.vaccinated = :vaccinated', {
+              vaccinated: vaccinated || false
+            })
             .take(Number(per_page))
             .skip(Number(per_page) * Number(page))
             .orderBy('patient.createdAt')
@@ -355,10 +367,6 @@ class PatientController {
       patientStatus.message = message
 
       patient.id = Number(id)
-      patient.attended = true
-      if (idStatus === 3) {
-        patient.updatable = true
-      }
       patient.patientStatus = patientStatus
 
       await getRepository(Patient).save(patient)
@@ -457,8 +465,6 @@ class PatientController {
       if (files.photo) {
         patient.photo = files.photo[0].filename
       }
-      patient.attended = false
-      patient.updatable = false
       patient.address = address
       patient.patientStatus = patientStatus
       if (
@@ -473,6 +479,39 @@ class PatientController {
       await getRepository(Patient).save(patient)
 
       return res.json({ msg: 'Atualização efetuada com sucesso!' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
+  public async markAsVaccinated (req: Request, res: Response) {
+    const { id } = req.params
+
+    try {
+      /** Verificando se paciente está aprovado */
+      const patientApproved = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select(['patient.id', 'patientStatus.status'])
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .where('patient.id = :id', { id })
+        .andWhere('patientStatus.status = 2')
+        .getRawOne()
+
+      if (!patientApproved) {
+        return res.status(401).json({
+          msg:
+            'O cadastro do paciente informado ainda está em análise ou não foi aprovado.'
+        })
+      }
+
+      const patient = new Patient()
+      patient.vaccinated = true
+
+      await getRepository(Patient).update(id, patient)
+      return res.json({ msg: 'Usuário marcado como vacinado com sucesso.' })
     } catch (err) {
       console.error(err)
       return res.status(500).json({
