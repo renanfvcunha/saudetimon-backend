@@ -184,7 +184,11 @@ class PatientController {
       patient.name = name
       patient.cpf = cpf
       if (susCard) {
-        patient.susCard = susCard
+        if (susCard === 'undefined') {
+          patient.susCard = undefined
+        } else {
+          patient.susCard = susCard
+        }
       }
       patient.group = { id: group?.id }
       patient.phone = phone
