@@ -1,5 +1,12 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
-
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn
+} from 'typeorm'
+import Category from './Category'
 import Patient from './Patient'
 
 @Entity({
@@ -10,17 +17,21 @@ class Group {
   id?: number
 
   @Column({
-    length: 50
-  })
-  slug?: string
-
-  @Column({
-    length: 150
+    length: 191
   })
   group?: string
 
   @OneToMany(() => Patient, patient => patient.group)
   patient?: Patient[]
+
+  @ManyToOne(() => Category, category => category.group, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE'
+  })
+  @JoinColumn({
+    name: 'idCategory'
+  })
+  category?: Category
 }
 
 export default Group

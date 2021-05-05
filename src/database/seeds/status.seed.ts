@@ -4,6 +4,10 @@ export const StatusSeed = [
     message: 'Seu cadastro está em análise e deverá ter um retorno em breve.'
   },
   {
+    status: 'Pré-Aprovado',
+    message: 'Seu cadastro foi pré-aprovado.'
+  },
+  {
     status: 'Aprovado',
     message:
       'Seu cadastro foi aprovado. Verifique sua posição na fila e fique atento(a) à chamada.'

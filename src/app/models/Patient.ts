@@ -5,15 +5,18 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from 'typeorm'
 
-import Group from './Group'
+import Category from './Category'
 import Address from './Address'
 import ComorbidityPatient from './ComorbidityPatient'
 import PatientStatus from './PatientStatus'
+import Group from './Group'
+import Attachment from './Attachment'
 
 @Entity({
   name: 'patients'
@@ -46,26 +49,6 @@ class Patient {
   phone?: string
 
   @Column({
-    length: 100
-  })
-  idDocFront?: string
-
-  @Column({
-    length: 100
-  })
-  idDocVerse?: string
-
-  @Column({
-    length: 100
-  })
-  addressProof?: string
-
-  @Column({
-    length: 100
-  })
-  photo?: string
-
-  @Column({
     default: false
   })
   vaccinated?: boolean
@@ -89,7 +72,16 @@ class Patient {
   })
   patientStatus?: PatientStatus
 
-  @ManyToOne(() => Group, group => group.patient, {
+  @ManyToOne(() => Category, category => category.patient, {
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL'
+  })
+  @JoinColumn({
+    name: 'idCategory'
+  })
+  category?: Category | null
+
+  @ManyToOne(() => Group, group => group.category, {
     onUpdate: 'CASCADE',
     onDelete: 'SET NULL'
   })
@@ -97,6 +89,9 @@ class Patient {
     name: 'idGroup'
   })
   group?: Group | null
+
+  @OneToMany(() => Attachment, attachment => attachment.patient)
+  attachment?: Attachment[]
 
   @CreateDateColumn()
   createdAt?: Date

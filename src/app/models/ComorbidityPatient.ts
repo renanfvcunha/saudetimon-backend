@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
+import { Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
 
 import Patient from './Patient'
 import Comorbidity from './Comorbidity'
@@ -25,24 +25,6 @@ class ComorbidityPatient {
     name: 'idComorbidity'
   })
   comorbidity?: Comorbidity | null
-
-  @Column({
-    length: 100,
-    nullable: true
-  })
-  medicalReport?: string
-
-  @Column({
-    length: 100,
-    nullable: true
-  })
-  medicalAuthorization?: string
-
-  @Column({
-    length: 100,
-    nullable: true
-  })
-  medicalPrescription?: string
 }
 
 export default ComorbidityPatient

@@ -119,104 +119,100 @@ class PatientController {
     }
   }
 
-  public async store (req: Request, res: Response) {
-    const {
-      name,
-      cpf,
-      susCard,
-      groupSlug,
-      street,
-      number,
-      complement,
-      reference,
-      neighborhood,
-      phone,
-      idComorbidity
-    }: IPatient = req.body
-    const files: IFiles = JSON.parse(JSON.stringify(req.files))
+  // public async store (req: Request, res: Response) {
+  //   const {
+  //     name,
+  //     cpf,
+  //     susCard,
+  //     groupSlug,
+  //     street,
+  //     number,
+  //     complement,
+  //     reference,
+  //     neighborhood,
+  //     phone,
+  //     idComorbidity
+  //   }: IPatient = req.body
+  //   const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
-    try {
-      /** Buscando grupo informado no banco de dados */
-      const group = await getRepository(Group).findOne({
-        where: { slug: groupSlug }
-      })
+  //   try {
+  //     /** Buscando grupo informado no banco de dados */
+  //     const group = await getRepository(Group).findOne({
+  //       where: { slug: groupSlug }
+  //     })
 
-      /** Instanciando classes */
-      const patient = new Patient()
-      const address = new Address()
-      const patientStatus = new PatientStatus()
-      const comorbidityPatient = new ComorbidityPatient()
+  //     /** Instanciando classes */
+  //     const patient = new Patient()
+  //     const address = new Address()
+  //     const patientStatus = new PatientStatus()
+  //     const comorbidityPatient = new ComorbidityPatient()
 
-      address.street = street
-      address.number = number
-      if (complement) {
-        address.complement = complement
-      }
-      address.reference = reference
-      address.neighborhood = neighborhood
+  //     address.street = street
+  //     address.number = number
+  //     if (complement) {
+  //       address.complement = complement
+  //     }
+  //     address.reference = reference
+  //     address.neighborhood = neighborhood
 
-      patientStatus.status = { id: 1 }
+  //     patientStatus.status = { id: 1 }
 
-      if (
-        (group && group.slug === 'paciente_oncologico') ||
-        (group && group.slug === 'paciente_renal')
-      ) {
-        if (files.medicalReport) {
-          comorbidityPatient.medicalReport = files.medicalReport[0].filename
-        }
-        if (files.medicalAuthorization) {
-          comorbidityPatient.medicalAuthorization =
-            files.medicalAuthorization[0].filename
-        }
-      }
+  //     if (
+  //       (group && group.slug === 'paciente_oncologico') ||
+  //       (group && group.slug === 'paciente_renal')
+  //     ) {
+  //       if (files.medicalReport) {
+  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
+  //       }
+  //       if (files.medicalAuthorization) {
+  //         comorbidityPatient.medicalAuthorization =
+  //           files.medicalAuthorization[0].filename
+  //       }
+  //     }
 
-      if (group && group.slug === 'comorbidades') {
-        comorbidityPatient.comorbidity = { id: idComorbidity }
-        if (files.medicalReport) {
-          comorbidityPatient.medicalReport = files.medicalReport[0].filename
-        }
-        if (files.medicalPrescription) {
-          comorbidityPatient.medicalPrescription =
-            files.medicalPrescription[0].filename
-        }
-      }
+  //     if (group && group.slug === 'comorbidades') {
+  //       comorbidityPatient.comorbidity = { id: idComorbidity }
+  //       if (files.medicalReport) {
+  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
+  //       }
+  //       if (files.medicalPrescription) {
+  //         comorbidityPatient.medicalPrescription =
+  //           files.medicalPrescription[0].filename
+  //       }
+  //     }
 
-      patient.name = name
-      patient.cpf = cpf
-      if (susCard) {
-        if (susCard === 'undefined') {
-          patient.susCard = undefined
-        } else {
-          patient.susCard = susCard
-        }
-      }
-      patient.group = { id: group?.id }
-      patient.phone = phone
-      patient.idDocFront = files.idDocFront[0].filename
-      patient.idDocVerse = files.idDocVerse[0].filename
-      patient.addressProof = files.addressProof[0].filename
-      patient.photo = files.photo[0].filename
-      patient.address = address
-      patient.patientStatus = patientStatus
-      if (
-        group &&
-        ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
-          grp => grp === group.slug
-        )
-      ) {
-        patient.comorbidityPatient = comorbidityPatient
-      }
+  //     patient.name = name
+  //     patient.cpf = cpf
+  //     if (susCard) {
+  //       patient.susCard = susCard
+  //     }
+  //     patient.group = { id: group?.id }
+  //     patient.phone = phone
+  //     patient.idDocFront = files.idDocFront[0].filename
+  //     patient.idDocVerse = files.idDocVerse[0].filename
+  //     patient.addressProof = files.addressProof[0].filename
+  //     patient.photo = files.photo[0].filename
+  //     patient.address = address
+  //     patient.patientStatus = patientStatus
+  //     if (
+  //       group &&
+  //       ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
+  //         grp => grp === group.slug
+  //       )
+  //     ) {
+  //       patient.comorbidityPatient = comorbidityPatient
+  //     }
 
-      await getRepository(Patient).save(patient)
+  //     await getRepository(Patient).save(patient)
 
-      return res.json({ msg: 'Cadastro efetuado com sucesso!' })
-    } catch (err) {
-      console.error(err)
-      return res.status(500).json({
-        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
-      })
-    }
-  }
+  //     return res.json({ msg: 'Cadastro efetuado com sucesso!' })
+  //   } catch (err) {
+  //     console.error(err)
+  //     return res.status(500).json({
+  //       msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+  //     })
+  //   }
+  // }
 
   public async show (req: Request, res: Response) {
     const { id } = req.params
@@ -384,112 +380,112 @@ class PatientController {
     }
   }
 
-  public async update (req: Request, res: Response) {
-    const { id } = req.params
-    const {
-      name,
-      cpf,
-      susCard,
-      street,
-      number,
-      complement,
-      reference,
-      neighborhood,
-      phone,
-      idComorbidity
-    }: IPatient = req.body
-    const files: IFiles = JSON.parse(JSON.stringify(req.files))
+  // public async update (req: Request, res: Response) {
+  //   const { id } = req.params
+  //   const {
+  //     name,
+  //     cpf,
+  //     susCard,
+  //     street,
+  //     number,
+  //     complement,
+  //     reference,
+  //     neighborhood,
+  //     phone,
+  //     idComorbidity
+  //   }: IPatient = req.body
+  //   const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
-    try {
-      /** Buscando grupo no banco de dados */
-      const group = await getRepository(Group)
-        .createQueryBuilder('group')
-        .select('group.slug')
-        .innerJoin('group.patient', 'patient')
-        .where('patient.id = :id', { id })
-        .getOne()
+  //   try {
+  //     /** Buscando grupo no banco de dados */
+  //     const group = await getRepository(Group)
+  //       .createQueryBuilder('group')
+  //       .select('group.slug')
+  //       .innerJoin('group.patient', 'patient')
+  //       .where('patient.id = :id', { id })
+  //       .getOne()
 
-      /** Instanciando classes */
-      const patient = new Patient()
-      const address = new Address()
-      const patientStatus = new PatientStatus()
-      const comorbidityPatient = new ComorbidityPatient()
+  //     /** Instanciando classes */
+  //     const patient = new Patient()
+  //     const address = new Address()
+  //     const patientStatus = new PatientStatus()
+  //     const comorbidityPatient = new ComorbidityPatient()
 
-      address.street = street
-      address.number = number
-      if (complement) {
-        address.complement = complement
-      }
-      address.reference = reference
-      address.neighborhood = neighborhood
+  //     address.street = street
+  //     address.number = number
+  //     if (complement) {
+  //       address.complement = complement
+  //     }
+  //     address.reference = reference
+  //     address.neighborhood = neighborhood
 
-      patientStatus.status = { id: 1 }
+  //     patientStatus.status = { id: 1 }
 
-      if (
-        (group && group.slug === 'paciente_oncologico') ||
-        (group && group.slug === 'paciente_renal')
-      ) {
-        if (files.medicalReport) {
-          comorbidityPatient.medicalReport = files.medicalReport[0].filename
-        }
-        if (files.medicalAuthorization) {
-          comorbidityPatient.medicalAuthorization =
-            files.medicalAuthorization[0].filename
-        }
-      }
+  //     if (
+  //       (group && group.slug === 'paciente_oncologico') ||
+  //       (group && group.slug === 'paciente_renal')
+  //     ) {
+  //       if (files.medicalReport) {
+  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
+  //       }
+  //       if (files.medicalAuthorization) {
+  //         comorbidityPatient.medicalAuthorization =
+  //           files.medicalAuthorization[0].filename
+  //       }
+  //     }
 
-      if (group && group.slug === 'comorbidades') {
-        comorbidityPatient.comorbidity = { id: idComorbidity }
-        if (files.medicalReport) {
-          comorbidityPatient.medicalReport = files.medicalReport[0].filename
-        }
-        if (files.medicalPrescription) {
-          comorbidityPatient.medicalPrescription =
-            files.medicalPrescription[0].filename
-        }
-      }
+  //     if (group && group.slug === 'comorbidades') {
+  //       comorbidityPatient.comorbidity = { id: idComorbidity }
+  //       if (files.medicalReport) {
+  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
+  //       }
+  //       if (files.medicalPrescription) {
+  //         comorbidityPatient.medicalPrescription =
+  //           files.medicalPrescription[0].filename
+  //       }
+  //     }
 
-      patient.id = Number(id)
-      patient.name = name
-      patient.cpf = cpf
-      if (susCard) {
-        patient.susCard = susCard
-      }
-      patient.group = { id: group?.id }
-      patient.phone = phone
-      if (files.idDocFront) {
-        patient.idDocFront = files.idDocFront[0].filename
-      }
-      if (files.idDocVerse) {
-        patient.idDocVerse = files.idDocVerse[0].filename
-      }
-      if (files.addressProof) {
-        patient.addressProof = files.addressProof[0].filename
-      }
-      if (files.photo) {
-        patient.photo = files.photo[0].filename
-      }
-      patient.address = address
-      patient.patientStatus = patientStatus
-      if (
-        group &&
-        ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
-          grp => grp === group.slug
-        )
-      ) {
-        patient.comorbidityPatient = comorbidityPatient
-      }
+  //     patient.id = Number(id)
+  //     patient.name = name
+  //     patient.cpf = cpf
+  //     if (susCard) {
+  //       patient.susCard = susCard
+  //     }
+  //     patient.group = { id: group?.id }
+  //     patient.phone = phone
+  //     if (files.idDocFront) {
+  //       patient.idDocFront = files.idDocFront[0].filename
+  //     }
+  //     if (files.idDocVerse) {
+  //       patient.idDocVerse = files.idDocVerse[0].filename
+  //     }
+  //     if (files.addressProof) {
+  //       patient.addressProof = files.addressProof[0].filename
+  //     }
+  //     if (files.photo) {
+  //       patient.photo = files.photo[0].filename
+  //     }
+  //     patient.address = address
+  //     patient.patientStatus = patientStatus
+  //     if (
+  //       group &&
+  //       ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
+  //         grp => grp === group.slug
+  //       )
+  //     ) {
+  //       patient.comorbidityPatient = comorbidityPatient
+  //     }
 
-      await getRepository(Patient).save(patient)
+  //     await getRepository(Patient).save(patient)
 
-      return res.json({ msg: 'Atualização efetuada com sucesso!' })
-    } catch (err) {
-      console.error(err)
-      return res.status(500).json({
-        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
-      })
-    }
-  }
+  //     return res.json({ msg: 'Atualização efetuada com sucesso!' })
+  //   } catch (err) {
+  //     console.error(err)
+  //     return res.status(500).json({
+  //       msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+  //     })
+  //   }
+  // }
 
   public async markAsVaccinated (req: Request, res: Response) {
     const { id } = req.params

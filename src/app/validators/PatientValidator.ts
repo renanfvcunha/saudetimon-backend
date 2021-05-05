@@ -100,32 +100,32 @@ class PatientValidator {
       }
 
       /** Verificando se arquivos obrigatórios foram enviados */
-      if (
-        group.slug === 'paciente_oncologico' ||
-        group.slug === 'paciente_renal'
-      ) {
-        if (!files.medicalReport || !files.medicalAuthorization) {
-          await dropFiles()
-          return res.status(400).json({
-            msg: 'É necessário enviar laudo e autorização médicas.'
-          })
-        }
-      }
+      // if (
+      //   group.slug === 'paciente_oncologico' ||
+      //   group.slug === 'paciente_renal'
+      // ) {
+      //   if (!files.medicalReport || !files.medicalAuthorization) {
+      //     await dropFiles()
+      //     return res.status(400).json({
+      //       msg: 'É necessário enviar laudo e autorização médicas.'
+      //     })
+      //   }
+      // }
 
-      if (group.slug === 'comorbidades') {
-        if (!idComorbidity) {
-          await dropFiles()
-          return res.status(400).json({
-            msg: 'É necessário especificar a comorbidade.'
-          })
-        }
-        if (!files.medicalReport && !files.medicalPrescription) {
-          await dropFiles()
-          return res.status(400).json({
-            msg: 'É necessário enviar um laudo ou alguma prescrição médica.'
-          })
-        }
-      }
+      // if (group.slug === 'comorbidades') {
+      //   if (!idComorbidity) {
+      //     await dropFiles()
+      //     return res.status(400).json({
+      //       msg: 'É necessário especificar a comorbidade.'
+      //     })
+      //   }
+      //   if (!files.medicalReport && !files.medicalPrescription) {
+      //     await dropFiles()
+      //     return res.status(400).json({
+      //       msg: 'É necessário enviar um laudo ou alguma prescrição médica.'
+      //     })
+      //   }
+      // }
 
       /** Verificanco se cpf e cartão sus já estão cadastrados */
       const cpfCheck = await getRepository(Patient).findOne({ where: { cpf } })
