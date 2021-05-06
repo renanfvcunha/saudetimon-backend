@@ -20,13 +20,13 @@ routes.get('/', (req, res) => res.json({ msg: 'Saúde Timon API' }))
 
 routes.post('/session', SessionController.store)
 
-/* routes.post(
+routes.post(
   '/patients',
   uploadFiles,
   PatientValidator.store,
   resizeImg,
   PatientController.store
-) */
+)
 routes.get('/patients/status/:cpf', PatientController.getStatus)
 routes.get('/patients/me/:cpf', PatientController.me)
 /* routes.put(

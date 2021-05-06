@@ -5,10 +5,14 @@ import IFiles from '../../typescript/IFiles'
 import IPatient from '../../typescript/IPatient'
 import IPatientStatus from '../../typescript/IPatientStatus'
 import Address from '../models/Address'
+import Attachment from '../models/Attachment'
+import Category from '../models/Category'
+import Comorbidity from '../models/Comorbidity'
 import ComorbidityPatient from '../models/ComorbidityPatient'
 import Group from '../models/Group'
 import Patient from '../models/Patient'
 import PatientStatus from '../models/PatientStatus'
+import Status from '../models/Status'
 
 class PatientController {
   public async index (req: Request, res: Response) {
@@ -213,6 +217,159 @@ class PatientController {
   //     })
   //   }
   // }
+
+  public async store (req: Request, res: Response) {
+    const {
+      name,
+      cpf,
+      susCard,
+      phone,
+      street,
+      number,
+      complement,
+      reference,
+      neighborhood,
+      idCategory,
+      idGroup,
+      idComorbidity,
+      renOncImun
+    }: IPatient = req.body
+    const files: IFiles = JSON.parse(JSON.stringify(req.files))
+
+    try {
+      /** Buscando categoria informada no banco de dados */
+      const category = await getRepository(Category).findOne(idCategory)
+
+      /** Buscando grupo informado no banco de dados */
+      const group = await getRepository(Group).findOne(idGroup)
+
+      /** Buscando Status 'Em Análise' */
+      const analysis = await getRepository(Status).findOne({
+        where: { status: 'Em Análise' }
+      })
+
+      /** Instanciando classes */
+      const patient = new Patient()
+      const address = new Address()
+      const patientStatus = new PatientStatus()
+      const comorbidityPatient = new ComorbidityPatient()
+
+      address.street = street
+      address.number = number
+      if (complement) {
+        address.complement = complement
+      }
+      address.reference = reference
+      address.neighborhood = neighborhood
+
+      patientStatus.status = analysis
+
+      if (idComorbidity) {
+        /** Buscando comorbidade informada */
+        const comorbidity = await getRepository(Comorbidity).findOne(
+          idComorbidity
+        )
+
+        comorbidityPatient.comorbidity = comorbidity
+      }
+
+      if (renOncImun) {
+        comorbidityPatient.renOncImun = true
+      }
+
+      /** Criando array de anexos enviados */
+      const attachments: Attachment[] = []
+
+      if (files.idDocFront) {
+        attachments.push({
+          field: 'idDocFront',
+          filename: files.idDocFront[0].filename
+        })
+      }
+      if (files.idDocVerse) {
+        attachments.push({
+          field: 'idDocVerse',
+          filename: files.idDocVerse[0].filename
+        })
+      }
+      if (files.cpf) {
+        attachments.push({
+          field: 'cpf',
+          filename: files.cpf[0].filename
+        })
+      }
+      if (files.addressProof) {
+        attachments.push({
+          field: 'addressProof',
+          filename: files.addressProof[0].filename
+        })
+      }
+      if (files.medicalReport) {
+        attachments.push({
+          field: 'medicalReport',
+          filename: files.medicalReport[0].filename
+        })
+      }
+      if (files.medicalAuthorization) {
+        attachments.push({
+          field: 'medicalAuthorization',
+          filename: files.medicalAuthorization[0].filename
+        })
+      }
+      if (files.workContract) {
+        attachments.push({
+          field: 'workContract',
+          filename: files.workContract[0].filename
+        })
+      }
+      if (files.prenatalCard) {
+        attachments.push({
+          field: 'prenatalCard',
+          filename: files.prenatalCard[0].filename
+        })
+      }
+      if (files.puerperalCard) {
+        attachments.push({
+          field: 'puerperalCard',
+          filename: files.puerperalCard[0].filename
+        })
+      }
+      if (files.bornAliveDec) {
+        attachments.push({
+          field: 'bornAliveDec',
+          filename: files.bornAliveDec[0].filename
+        })
+      }
+      if (files.patientContract) {
+        attachments.push({
+          field: 'patientContract',
+          filename: files.patientContract[0].filename
+        })
+      }
+
+      patient.name = name
+      patient.cpf = cpf
+      if (susCard) {
+        patient.susCard = susCard
+      }
+      patient.phone = phone
+      patient.address = address
+      patient.category = category
+      patient.group = group
+      patient.patientStatus = patientStatus
+      patient.comorbidityPatient = comorbidityPatient
+      patient.attachment = attachments
+
+      await getRepository(Patient).save(patient)
+
+      return res.json({ msg: 'Cadastro efetuado com sucesso!' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
 
   public async show (req: Request, res: Response) {
     const { id } = req.params

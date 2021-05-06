@@ -14,10 +14,10 @@ const uploadFilesCfg = multer({
 
       let prefix: string
 
-      if (file.mimetype !== 'application/pdf') {
-        prefix = 'IMG'
-      } else {
+      if (file.mimetype === 'application/pdf') {
         prefix = 'DOC'
+      } else {
+        prefix = 'IMG'
       }
 
       const date = new Date()
@@ -26,7 +26,9 @@ const uploadFilesCfg = multer({
         date.getMonth() + 1
       )}${pStart(date.getDate())}_${pStart(date.getHours())}${pStart(
         date.getMinutes()
-      )}${pStart(date.getSeconds())}${date.getMilliseconds().toString()}.${ext}`
+      )}${pStart(date.getSeconds())}_${Math.ceil(
+        Math.random() * 10000
+      ).toString()}.${ext}`
 
       cb(null, fileName)
     }
@@ -58,11 +60,11 @@ const uploadFiles = (req: Request, res: Response, next: NextFunction) => {
       maxCount: 1
     },
     {
-      name: 'addressProof',
+      name: 'cpf',
       maxCount: 1
     },
     {
-      name: 'photo',
+      name: 'addressProof',
       maxCount: 1
     },
     {
@@ -74,7 +76,23 @@ const uploadFiles = (req: Request, res: Response, next: NextFunction) => {
       maxCount: 1
     },
     {
-      name: 'medicalPrescription',
+      name: 'workContract',
+      maxCount: 1
+    },
+    {
+      name: 'prenatalCard',
+      maxCount: 1
+    },
+    {
+      name: 'puerperalCard',
+      maxCount: 1
+    },
+    {
+      name: 'bornAliveDec',
+      maxCount: 1
+    },
+    {
+      name: 'patientContract',
       maxCount: 1
     }
   ])

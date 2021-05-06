@@ -3,12 +3,14 @@ export default interface IPatient {
   name: string
   cpf: string
   susCard?: string
-  groupSlug: string
-  idComorbidity?: number
+  phone: string
   street: string
   number: number
   reference: string
   complement?: string
   neighborhood: string
-  phone: string
+  idCategory: number
+  idGroup: number
+  idComorbidity?: number
+  renOncImun?: boolean
 }

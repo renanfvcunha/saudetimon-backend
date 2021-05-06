@@ -37,13 +37,13 @@ const resizeImg = (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  if (files.addressProof) {
-    if (files.addressProof[0].mimetype !== 'application/pdf') {
-      resizeImgFile(files.addressProof[0], 1920)
+  if (files.cpf) {
+    if (files.cpf[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.cpf[0], 1920)
     } else {
       rename(
-        files.addressProof[0].path,
-        resolve(uploadsPath, files.addressProof[0].filename),
+        files.cpf[0].path,
+        resolve(uploadsPath, files.cpf[0].filename),
         err => {
           if (err) throw err
         }
@@ -51,13 +51,13 @@ const resizeImg = (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  if (files.photo) {
-    if (files.photo[0].mimetype !== 'application/pdf') {
-      resizeImgFile(files.photo[0], 1920)
+  if (files.addressProof) {
+    if (files.addressProof[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.addressProof[0], 1920)
     } else {
       rename(
-        files.photo[0].path,
-        resolve(uploadsPath, files.photo[0].filename),
+        files.addressProof[0].path,
+        resolve(uploadsPath, files.addressProof[0].filename),
         err => {
           if (err) throw err
         }
@@ -93,13 +93,69 @@ const resizeImg = (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  if (files.medicalPrescription) {
-    if (files.medicalPrescription[0].mimetype !== 'application/pdf') {
-      resizeImgFile(files.medicalPrescription[0], 1920)
+  if (files.workContract) {
+    if (files.workContract[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.workContract[0], 1920)
     } else {
       rename(
-        files.medicalPrescription[0].path,
-        resolve(uploadsPath, files.medicalPrescription[0].filename),
+        files.workContract[0].path,
+        resolve(uploadsPath, files.workContract[0].filename),
+        err => {
+          if (err) throw err
+        }
+      )
+    }
+  }
+
+  if (files.prenatalCard) {
+    if (files.prenatalCard[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.prenatalCard[0], 1920)
+    } else {
+      rename(
+        files.prenatalCard[0].path,
+        resolve(uploadsPath, files.prenatalCard[0].filename),
+        err => {
+          if (err) throw err
+        }
+      )
+    }
+  }
+
+  if (files.puerperalCard) {
+    if (files.puerperalCard[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.puerperalCard[0], 1920)
+    } else {
+      rename(
+        files.puerperalCard[0].path,
+        resolve(uploadsPath, files.puerperalCard[0].filename),
+        err => {
+          if (err) throw err
+        }
+      )
+    }
+  }
+
+  if (files.bornAliveDec) {
+    if (files.bornAliveDec[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.bornAliveDec[0], 1920)
+    } else {
+      rename(
+        files.bornAliveDec[0].path,
+        resolve(uploadsPath, files.bornAliveDec[0].filename),
+        err => {
+          if (err) throw err
+        }
+      )
+    }
+  }
+
+  if (files.patientContract) {
+    if (files.patientContract[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.patientContract[0], 1920)
+    } else {
+      rename(
+        files.patientContract[0].path,
+        resolve(uploadsPath, files.patientContract[0].filename),
         err => {
           if (err) throw err
         }

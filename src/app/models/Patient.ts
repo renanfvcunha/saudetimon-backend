@@ -74,7 +74,8 @@ class Patient {
 
   @ManyToOne(() => Category, category => category.patient, {
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL'
+    onDelete: 'SET NULL',
+    cascade: true
   })
   @JoinColumn({
     name: 'idCategory'
@@ -83,14 +84,17 @@ class Patient {
 
   @ManyToOne(() => Group, group => group.category, {
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL'
+    onDelete: 'SET NULL',
+    cascade: true
   })
   @JoinColumn({
     name: 'idGroup'
   })
   group?: Group | null
 
-  @OneToMany(() => Attachment, attachment => attachment.patient)
+  @OneToMany(() => Attachment, attachment => attachment.patient, {
+    cascade: true
+  })
   attachment?: Attachment[]
 
   @CreateDateColumn()

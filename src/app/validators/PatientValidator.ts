@@ -6,6 +6,7 @@ import IPatient from '../../typescript/IPatient'
 import Patient from '../models/Patient'
 import Group from '../models/Group'
 import IFiles from '../../typescript/IFiles'
+import Category from '../models/Category'
 
 class PatientValidator {
   public async store (req: Request, res: Response, next: NextFunction) {
@@ -13,13 +14,15 @@ class PatientValidator {
       name,
       cpf,
       susCard,
-      groupSlug,
       street,
       number,
       reference,
       neighborhood,
       phone,
-      idComorbidity
+      idCategory,
+      idGroup,
+      idComorbidity,
+      renOncImun
     }: IPatient = req.body
     const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
@@ -35,13 +38,13 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.addressProof) {
-          unlink(files.addressProof[0].path, err => {
+        if (files.cpf) {
+          unlink(files.cpf[0].path, err => {
             if (err) reject(err)
           })
         }
-        if (files.photo) {
-          unlink(files.photo[0].path, err => {
+        if (files.addressProof) {
+          unlink(files.addressProof[0].path, err => {
             if (err) reject(err)
           })
         }
@@ -55,8 +58,28 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.medicalPrescription) {
-          unlink(files.medicalPrescription[0].path, err => {
+        if (files.workContract) {
+          unlink(files.workContract[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.prenatalCard) {
+          unlink(files.prenatalCard[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.puerperalCard) {
+          unlink(files.puerperalCard[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.bornAliveDec) {
+          unlink(files.bornAliveDec[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.patientContract) {
+          unlink(files.patientContract[0].path, err => {
             if (err) reject(err)
           })
         }
@@ -65,67 +88,89 @@ class PatientValidator {
       })
 
     try {
-      /** Verificando se os campos e arquivos obrigatórios foram preenchidos */
+      /** Verificando se os campos obrigatórios foram preenchidos */
       if (
         !name ||
         !cpf ||
-        !groupSlug ||
+        !phone ||
         !street ||
         !number ||
         !reference ||
         !neighborhood ||
-        !phone ||
-        !files.idDocFront ||
-        !files.idDocVerse ||
-        !files.addressProof ||
-        !files.photo
+        !idCategory
       ) {
         await dropFiles()
         return res.status(400).json({
-          msg:
-            'Verifique se todos os campos e anexos obrigatórios foram preenchidos.'
+          msg: 'Verifique se todos os campos obrigatórios foram preenchidos.'
         })
       }
 
-      /** Buscando grupo informado no banco de dados e verificando se existe */
-      const group = await getRepository(Group).findOne({
-        where: { slug: groupSlug }
-      })
+      /** Buscando a categoria informada no banco de dados e verificando se existe */
+      const category = await getRepository(Category).findOne(idCategory)
 
-      if (!group) {
+      if (!category) {
         await dropFiles()
         return res
           .status(400)
-          .json({ msg: 'O grupo informado não foi encontrado.' })
+          .json({ msg: 'A categoria informada não foi encontrada.' })
+      }
+
+      if (category.category !== 'Pacientes Acamados') {
+        /** Verificando se id do grupo foi enviado */
+        if (!idGroup) {
+          await dropFiles()
+          return res
+            .status(400)
+            .json({ msg: 'Verifique se o grupo foi enviado corretamente.' })
+        }
+
+        /** Buscando grupo informado no banco de dados e verificando se existe */
+        const group = await getRepository(Group).findOne(idGroup, {
+          where: { category }
+        })
+
+        if (!group) {
+          await dropFiles()
+          return res.status(400).json({
+            msg: `O grupo informado não foi encontrado ou não faz parte da categoria "${category.category}".`
+          })
+        }
       }
 
       /** Verificando se arquivos obrigatórios foram enviados */
-      // if (
-      //   group.slug === 'paciente_oncologico' ||
-      //   group.slug === 'paciente_renal'
-      // ) {
-      //   if (!files.medicalReport || !files.medicalAuthorization) {
-      //     await dropFiles()
-      //     return res.status(400).json({
-      //       msg: 'É necessário enviar laudo e autorização médicas.'
-      //     })
-      //   }
-      // }
+      if (
+        !files.idDocFront ||
+        !files.idDocVerse ||
+        !files.cpf ||
+        !files.addressProof
+      ) {
+        await dropFiles()
+        return res.status(400).json({
+          msg: `Verifique se todos os seguintes documentos foram enviados:
+            Documento de Identificação (Frente), Documento de Identificação
+            (Verso), CPF ou Cartão SUS e Comprovante de Endereço`
+        })
+      }
 
-      // if (group.slug === 'comorbidades') {
-      //   if (!idComorbidity) {
-      //     await dropFiles()
-      //     return res.status(400).json({
-      //       msg: 'É necessário especificar a comorbidade.'
-      //     })
-      //   }
-      //   if (!files.medicalReport && !files.medicalPrescription) {
-      //     await dropFiles()
-      //     return res.status(400).json({
-      //       msg: 'É necessário enviar um laudo ou alguma prescrição médica.'
-      //     })
-      //   }
-      // }
+      /** Verificando se laudo médico foi enviado em caso de comorbidades */
+      if (idComorbidity && !files.medicalReport) {
+        await dropFiles()
+        return res
+          .status(400)
+          .json({ msg: 'Verifique se o laudo médico foi enviado.' })
+      }
+
+      /** Verificando se laudo e autorização médica foram enviados em caso de
+       * paciente renal, oncológico ou imunossuprimido
+       */
+      if (renOncImun) {
+        if (!files.medicalReport || !files.medicalAuthorization) {
+          await dropFiles()
+          return res.status(400).json({
+            msg: 'Verifique se o laudo e autorização médica foram enviados.'
+          })
+        }
+      }
 
       /** Verificanco se cpf e cartão sus já estão cadastrados */
       const cpfCheck = await getRepository(Patient).findOne({ where: { cpf } })
@@ -182,13 +227,13 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.addressProof) {
-          unlink(files.addressProof[0].path, err => {
+        if (files.cpf) {
+          unlink(files.cpf[0].path, err => {
             if (err) reject(err)
           })
         }
-        if (files.photo) {
-          unlink(files.photo[0].path, err => {
+        if (files.addressProof) {
+          unlink(files.addressProof[0].path, err => {
             if (err) reject(err)
           })
         }
@@ -202,8 +247,28 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.medicalPrescription) {
-          unlink(files.medicalPrescription[0].path, err => {
+        if (files.workContract) {
+          unlink(files.workContract[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.prenatalCard) {
+          unlink(files.prenatalCard[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.puerperalCard) {
+          unlink(files.puerperalCard[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.bornAliveDec) {
+          unlink(files.bornAliveDec[0].path, err => {
+            if (err) reject(err)
+          })
+        }
+        if (files.patientContract) {
+          unlink(files.patientContract[0].path, err => {
             if (err) reject(err)
           })
         }

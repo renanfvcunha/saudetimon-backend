@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm'
 
 import Patient from './Patient'
 import Comorbidity from './Comorbidity'
@@ -25,6 +25,11 @@ class ComorbidityPatient {
     name: 'idComorbidity'
   })
   comorbidity?: Comorbidity | null
+
+  @Column({
+    default: false
+  })
+  renOncImun?: boolean
 }
 
 export default ComorbidityPatient
