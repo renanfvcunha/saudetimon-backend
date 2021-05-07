@@ -97,7 +97,8 @@ class PatientValidator {
         !number ||
         !reference ||
         !neighborhood ||
-        !idCategory
+        !idCategory ||
+        !idGroup
       ) {
         await dropFiles()
         return res.status(400).json({
@@ -115,26 +116,16 @@ class PatientValidator {
           .json({ msg: 'A categoria informada não foi encontrada.' })
       }
 
-      if (category.category !== 'Pacientes Acamados') {
-        /** Verificando se id do grupo foi enviado */
-        if (!idGroup) {
-          await dropFiles()
-          return res
-            .status(400)
-            .json({ msg: 'Verifique se o grupo foi enviado corretamente.' })
-        }
+      /** Buscando grupo informado no banco de dados e verificando se existe */
+      const group = await getRepository(Group).findOne(idGroup, {
+        where: { category }
+      })
 
-        /** Buscando grupo informado no banco de dados e verificando se existe */
-        const group = await getRepository(Group).findOne(idGroup, {
-          where: { category }
+      if (!group) {
+        await dropFiles()
+        return res.status(400).json({
+          msg: `O grupo informado não foi encontrado ou não faz parte da categoria "${category.category}".`
         })
-
-        if (!group) {
-          await dropFiles()
-          return res.status(400).json({
-            msg: `O grupo informado não foi encontrado ou não faz parte da categoria "${category.category}".`
-          })
-        }
       }
 
       /** Verificando se arquivos obrigatórios foram enviados */
