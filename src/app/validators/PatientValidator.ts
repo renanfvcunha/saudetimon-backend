@@ -137,9 +137,8 @@ class PatientValidator {
       ) {
         await dropFiles()
         return res.status(400).json({
-          msg: `Verifique se todos os seguintes documentos foram enviados:
-            Documento de Identificação (Frente), Documento de Identificação
-            (Verso), CPF ou Cartão SUS e Comprovante de Endereço`
+          msg:
+            'Verifique se todos os seguintes documentos foram enviados: Documento de Identificação (Frente), Documento de Identificação (Verso), CPF ou Cartão SUS e Comprovante de Endereço'
         })
       }
 
@@ -154,11 +153,57 @@ class PatientValidator {
       /** Verificando se laudo e autorização médica foram enviados em caso de
        * paciente renal, oncológico ou imunossuprimido
        */
-      if (renOncImun) {
+      if (JSON.parse(renOncImun) === true) {
         if (!files.medicalReport || !files.medicalAuthorization) {
           await dropFiles()
           return res.status(400).json({
             msg: 'Verifique se o laudo e autorização médica foram enviados.'
+          })
+        }
+      }
+
+      /** Verificando se contracheque ou contrato de trabalho foi enviado
+       * para a categoria sobra de doses
+       */
+      if (category.category === 'Sobra de Doses') {
+        if (!files.workContract) {
+          await dropFiles()
+          return res.status(400).json({
+            msg:
+              'Verifique se o contracheque ou contrato de trabalho foi enviado.'
+          })
+        }
+      }
+
+      /** Verificando se pre natal, puerperas e declaração de nascido vivo foram
+       * enviados em caso de gestantes
+       */
+      if (group.group && /gestantes/i.test(group.group)) {
+        if (
+          !files.prenatalCard ||
+          !files.puerperalCard ||
+          !files.bornAliveDec
+        ) {
+          await dropFiles()
+          return res.status(400).json({
+            msg:
+              'Verifique se todos os seguintes documentos foram enviados: Cartão de Pré Natal, Cartão de Puérperas e Declaração de Nascido Vivo.'
+          })
+        }
+      }
+
+      /** Verificando se contrato com o paciente ou declaração autenticada em
+       * cartório foi enviado em caso de profissional de saúde autônomo
+       */
+      if (
+        group.group &&
+        group.group === 'Profissionais da área da saúde - autônomos'
+      ) {
+        if (!files.patientContract) {
+          await dropFiles()
+          return res.status(400).json({
+            msg:
+              'Necessário enviar contrato com o paciente ou declaração autenticada em cartório.'
           })
         }
       }

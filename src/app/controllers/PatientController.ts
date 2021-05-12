@@ -273,7 +273,7 @@ class PatientController {
         comorbidityPatient.comorbidity = comorbidity
       }
 
-      if (renOncImun) {
+      if (JSON.parse(renOncImun) === true) {
         comorbidityPatient.renOncImun = true
       }
 

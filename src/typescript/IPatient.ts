@@ -12,5 +12,5 @@ export default interface IPatient {
   idCategory: number
   idGroup: number
   idComorbidity?: number
-  renOncImun?: boolean
+  renOncImun: string
 }
