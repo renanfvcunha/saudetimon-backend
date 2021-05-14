@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { getRepository } from 'typeorm'
+import { getManager, getRepository } from 'typeorm'
 import IFiles from '../../typescript/IFiles'
 
 import IPatient from '../../typescript/IPatient'
@@ -122,101 +122,6 @@ class PatientController {
       })
     }
   }
-
-  // public async store (req: Request, res: Response) {
-  //   const {
-  //     name,
-  //     cpf,
-  //     susCard,
-  //     groupSlug,
-  //     street,
-  //     number,
-  //     complement,
-  //     reference,
-  //     neighborhood,
-  //     phone,
-  //     idComorbidity
-  //   }: IPatient = req.body
-  //   const files: IFiles = JSON.parse(JSON.stringify(req.files))
-
-  //   try {
-  //     /** Buscando grupo informado no banco de dados */
-  //     const group = await getRepository(Group).findOne({
-  //       where: { slug: groupSlug }
-  //     })
-
-  //     /** Instanciando classes */
-  //     const patient = new Patient()
-  //     const address = new Address()
-  //     const patientStatus = new PatientStatus()
-  //     const comorbidityPatient = new ComorbidityPatient()
-
-  //     address.street = street
-  //     address.number = number
-  //     if (complement) {
-  //       address.complement = complement
-  //     }
-  //     address.reference = reference
-  //     address.neighborhood = neighborhood
-
-  //     patientStatus.status = { id: 1 }
-
-  //     if (
-  //       (group && group.slug === 'paciente_oncologico') ||
-  //       (group && group.slug === 'paciente_renal')
-  //     ) {
-  //       if (files.medicalReport) {
-  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
-  //       }
-  //       if (files.medicalAuthorization) {
-  //         comorbidityPatient.medicalAuthorization =
-  //           files.medicalAuthorization[0].filename
-  //       }
-  //     }
-
-  //     if (group && group.slug === 'comorbidades') {
-  //       comorbidityPatient.comorbidity = { id: idComorbidity }
-  //       if (files.medicalReport) {
-  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
-  //       }
-  //       if (files.medicalPrescription) {
-  //         comorbidityPatient.medicalPrescription =
-  //           files.medicalPrescription[0].filename
-  //       }
-  //     }
-
-  //     patient.name = name
-  //     patient.cpf = cpf
-  //     if (susCard) {
-  //       patient.susCard = susCard
-  //     }
-  //     patient.group = { id: group?.id }
-  //     patient.phone = phone
-  //     patient.idDocFront = files.idDocFront[0].filename
-  //     patient.idDocVerse = files.idDocVerse[0].filename
-  //     patient.addressProof = files.addressProof[0].filename
-  //     patient.photo = files.photo[0].filename
-  //     patient.address = address
-  //     patient.patientStatus = patientStatus
-  //     if (
-  //       group &&
-  //       ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
-  //         grp => grp === group.slug
-  //       )
-  //     ) {
-  //       patient.comorbidityPatient = comorbidityPatient
-  //     }
-
-  //     await getRepository(Patient).save(patient)
-
-  //     return res.json({ msg: 'Cadastro efetuado com sucesso!' })
-  //   } catch (err) {
-  //     console.error(err)
-  //     return res.status(500).json({
-  //       msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
-  //     })
-  //   }
-  // }
 
   public async store (req: Request, res: Response) {
     const {
@@ -388,7 +293,6 @@ class PatientController {
           'patient.addressProof',
           'patient.photo',
           'patient.createdAt',
-          'group.slug',
           'group.group',
           'address.street',
           'address.number',
@@ -434,7 +338,8 @@ class PatientController {
           'address.complement as complement',
           'address.reference as reference',
           'address.neighborhood as neighborhood',
-          'comorbidityPatient.idComorbidity'
+          'comorbidityPatient.renOncImun as "renOncImun"',
+          'comorbidity.id as "idComorbidity"'
         ])
         .innerJoin('patient.address', 'address')
         .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
@@ -460,8 +365,8 @@ class PatientController {
         .select([
           'patient.id',
           'patient.cpf',
+          'category',
           'group.id',
-          'group.slug',
           'group.group',
           'patientStatus.message',
           'patientStatus.status',
@@ -469,6 +374,7 @@ class PatientController {
           'status.status',
           'status.message'
         ])
+        .innerJoin('patient.category', 'category')
         .innerJoin('patient.group', 'group')
         .innerJoin('patient.patientStatus', 'patientStatus')
         .innerJoin('patientStatus.status', 'status')
@@ -484,18 +390,22 @@ class PatientController {
       const approveds = await getRepository(Patient)
         .createQueryBuilder('patient')
         .select(['patient.id'])
+        .innerJoin('patient.category', 'category')
         .innerJoin('patient.group', 'group')
         .innerJoin('patient.patientStatus', 'patientStatus')
         .innerJoin('patientStatus.status', 'status')
-        .where('group.id = :groupId', { groupId: patient.group?.id })
-        .andWhere('status.id = 2')
-        .andWhere('patient.vaccinated = false')
-        .orderBy('patient.updatedAt')
+        .where('category.category = :category', { category: 'Sobra de Doses' })
+        .andWhere('status.status = :status', { status: 'Aprovado' })
+        .andWhere('patient.vaccinated = :vaccinated', { vaccinated: false })
+        .orderBy('patient.createdAt')
         .getMany()
 
       if (
-        patient.patientStatus?.status &&
-        patient.patientStatus?.status.id === 2
+        patient.category &&
+        patient.category.category === 'Sobra de Doses' &&
+        patient.patientStatus &&
+        patient.patientStatus.status &&
+        patient.patientStatus.status.status === 'Aprovado'
       ) {
         const position =
           approveds.findIndex(approved => approved.id === patient.id) + 1
@@ -537,112 +447,288 @@ class PatientController {
     }
   }
 
-  // public async update (req: Request, res: Response) {
-  //   const { id } = req.params
-  //   const {
-  //     name,
-  //     cpf,
-  //     susCard,
-  //     street,
-  //     number,
-  //     complement,
-  //     reference,
-  //     neighborhood,
-  //     phone,
-  //     idComorbidity
-  //   }: IPatient = req.body
-  //   const files: IFiles = JSON.parse(JSON.stringify(req.files))
+  public async update (req: Request, res: Response) {
+    const { id } = req.params
+    const {
+      name,
+      cpf,
+      susCard,
+      street,
+      number,
+      complement,
+      reference,
+      neighborhood,
+      phone
+    }: IPatient = req.body
+    const files: IFiles = JSON.parse(JSON.stringify(req.files))
 
-  //   try {
-  //     /** Buscando grupo no banco de dados */
-  //     const group = await getRepository(Group)
-  //       .createQueryBuilder('group')
-  //       .select('group.slug')
-  //       .innerJoin('group.patient', 'patient')
-  //       .where('patient.id = :id', { id })
-  //       .getOne()
+    try {
+      /** Buscando paciente informado */
+      const patientById = await getRepository(Patient).findOne(id)
 
-  //     /** Instanciando classes */
-  //     const patient = new Patient()
-  //     const address = new Address()
-  //     const patientStatus = new PatientStatus()
-  //     const comorbidityPatient = new ComorbidityPatient()
+      /** Buscando Status 'Em Análise' */
+      const analysis = await getRepository(Status).findOne({
+        where: { status: 'Em Análise' }
+      })
 
-  //     address.street = street
-  //     address.number = number
-  //     if (complement) {
-  //       address.complement = complement
-  //     }
-  //     address.reference = reference
-  //     address.neighborhood = neighborhood
+      /** Buscando anexos já enviados */
+      const attachmentSent = await getRepository(Attachment).find({
+        where: { patient: patientById }
+      })
 
-  //     patientStatus.status = { id: 1 }
+      /** Instanciando classes */
+      const patient = new Patient()
+      const address = new Address()
+      const patientStatus = new PatientStatus()
 
-  //     if (
-  //       (group && group.slug === 'paciente_oncologico') ||
-  //       (group && group.slug === 'paciente_renal')
-  //     ) {
-  //       if (files.medicalReport) {
-  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
-  //       }
-  //       if (files.medicalAuthorization) {
-  //         comorbidityPatient.medicalAuthorization =
-  //           files.medicalAuthorization[0].filename
-  //       }
-  //     }
+      address.street = street
+      address.number = number
+      if (complement) {
+        address.complement = complement
+      }
+      address.reference = reference
+      address.neighborhood = neighborhood
 
-  //     if (group && group.slug === 'comorbidades') {
-  //       comorbidityPatient.comorbidity = { id: idComorbidity }
-  //       if (files.medicalReport) {
-  //         comorbidityPatient.medicalReport = files.medicalReport[0].filename
-  //       }
-  //       if (files.medicalPrescription) {
-  //         comorbidityPatient.medicalPrescription =
-  //           files.medicalPrescription[0].filename
-  //       }
-  //     }
+      patientStatus.status = analysis
 
-  //     patient.id = Number(id)
-  //     patient.name = name
-  //     patient.cpf = cpf
-  //     if (susCard) {
-  //       patient.susCard = susCard
-  //     }
-  //     patient.group = { id: group?.id }
-  //     patient.phone = phone
-  //     if (files.idDocFront) {
-  //       patient.idDocFront = files.idDocFront[0].filename
-  //     }
-  //     if (files.idDocVerse) {
-  //       patient.idDocVerse = files.idDocVerse[0].filename
-  //     }
-  //     if (files.addressProof) {
-  //       patient.addressProof = files.addressProof[0].filename
-  //     }
-  //     if (files.photo) {
-  //       patient.photo = files.photo[0].filename
-  //     }
-  //     patient.address = address
-  //     patient.patientStatus = patientStatus
-  //     if (
-  //       group &&
-  //       ['paciente_oncologico', 'paciente_renal', 'comorbidades'].find(
-  //         grp => grp === group.slug
-  //       )
-  //     ) {
-  //       patient.comorbidityPatient = comorbidityPatient
-  //     }
+      /** Setando dados do Paciente */
+      patient.id = Number(id)
+      patient.name = name
+      patient.cpf = cpf
+      if (susCard) {
+        patient.susCard = susCard
+      }
+      patient.phone = phone
+      patient.address = address
+      patient.patientStatus = patientStatus
 
-  //     await getRepository(Patient).save(patient)
+      /** Criando array de anexos enviados */
+      const attachments: Attachment[] = []
 
-  //     return res.json({ msg: 'Atualização efetuada com sucesso!' })
-  //   } catch (err) {
-  //     console.error(err)
-  //     return res.status(500).json({
-  //       msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
-  //     })
-  //   }
-  // }
+      if (files.idDocFront) {
+        const idDocFrontFound = attachmentSent.find(
+          attch => attch.field === 'idDocFront'
+        )
+        if (idDocFrontFound) {
+          attachments.push({
+            id: idDocFrontFound.id,
+            field: idDocFrontFound.field,
+            filename: files.idDocFront[0].filename,
+            patient: idDocFrontFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'idDocFront',
+            filename: files.idDocFront[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.idDocVerse) {
+        const idDocVerseFound = attachmentSent.find(
+          attch => attch.field === 'idDocVerse'
+        )
+        if (idDocVerseFound) {
+          attachments.push({
+            id: idDocVerseFound.id,
+            field: idDocVerseFound.field,
+            filename: files.idDocVerse[0].filename,
+            patient: idDocVerseFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'idDocVerse',
+            filename: files.idDocVerse[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.cpf) {
+        const cpfFound = attachmentSent.find(attch => attch.field === 'cpf')
+        if (cpfFound) {
+          attachments.push({
+            id: cpfFound.id,
+            field: cpfFound.field,
+            filename: files.cpf[0].filename,
+            patient: cpfFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'cpf',
+            filename: files.cpf[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.addressProof) {
+        const addressProofFound = attachmentSent.find(
+          attch => attch.field === 'addressProof'
+        )
+        if (addressProofFound) {
+          attachments.push({
+            id: addressProofFound.id,
+            field: addressProofFound.field,
+            filename: files.addressProof[0].filename,
+            patient: addressProofFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'addressProof',
+            filename: files.addressProof[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.medicalReport) {
+        const medicalReportFound = attachmentSent.find(
+          attch => attch.field === 'medicalReport'
+        )
+        if (medicalReportFound) {
+          attachments.push({
+            id: medicalReportFound.id,
+            field: medicalReportFound.field,
+            filename: files.medicalReport[0].filename,
+            patient: medicalReportFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'medicalReport',
+            filename: files.medicalReport[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.medicalAuthorization) {
+        const medicalAuthorizationFound = attachmentSent.find(
+          attch => attch.field === 'medicalAuthorization'
+        )
+        if (medicalAuthorizationFound) {
+          attachments.push({
+            id: medicalAuthorizationFound.id,
+            field: medicalAuthorizationFound.field,
+            filename: files.medicalAuthorization[0].filename,
+            patient: medicalAuthorizationFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'medicalAuthorization',
+            filename: files.medicalAuthorization[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.workContract) {
+        const workContractFound = attachmentSent.find(
+          attch => attch.field === 'workContract'
+        )
+        if (workContractFound) {
+          attachments.push({
+            id: workContractFound.id,
+            field: workContractFound.field,
+            filename: files.workContract[0].filename,
+            patient: workContractFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'workContract',
+            filename: files.workContract[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.prenatalCard) {
+        const prenatalCardFound = attachmentSent.find(
+          attch => attch.field === 'prenatalCard'
+        )
+        if (prenatalCardFound) {
+          attachments.push({
+            id: prenatalCardFound.id,
+            field: prenatalCardFound.field,
+            filename: files.prenatalCard[0].filename,
+            patient: prenatalCardFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'prenatalCard',
+            filename: files.prenatalCard[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.puerperalCard) {
+        const puerperalCardFound = attachmentSent.find(
+          attch => attch.field === 'puerperalCard'
+        )
+        if (puerperalCardFound) {
+          attachments.push({
+            id: puerperalCardFound.id,
+            field: puerperalCardFound.field,
+            filename: files.puerperalCard[0].filename,
+            patient: puerperalCardFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'puerperalCard',
+            filename: files.puerperalCard[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.bornAliveDec) {
+        const bornAliveDecFound = attachmentSent.find(
+          attch => attch.field === 'bornAliveDec'
+        )
+        if (bornAliveDecFound) {
+          attachments.push({
+            id: bornAliveDecFound.id,
+            field: bornAliveDecFound.field,
+            filename: files.bornAliveDec[0].filename,
+            patient: bornAliveDecFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'bornAliveDec',
+            filename: files.bornAliveDec[0].filename,
+            patient: patientById
+          })
+        }
+      }
+      if (files.patientContract) {
+        const patientContractFound = attachmentSent.find(
+          attch => attch.field === 'patientContract'
+        )
+        if (patientContractFound) {
+          attachments.push({
+            id: patientContractFound.id,
+            field: patientContractFound.field,
+            filename: files.patientContract[0].filename,
+            patient: patientContractFound.patient
+          })
+        } else {
+          attachments.push({
+            field: 'patientContract',
+            filename: files.patientContract[0].filename,
+            patient: patientById
+          })
+        }
+      }
+
+      /** Criando Transação */
+      await getManager().transaction(async transactionalEntityManager => {
+        await transactionalEntityManager.getRepository(Patient).save(patient)
+        await transactionalEntityManager
+          .getRepository(Attachment)
+          .save(attachments)
+      })
+
+      return res.json({ msg: 'Atualização efetuada com sucesso!' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
 
   public async markAsVaccinated (req: Request, res: Response) {
     const { id } = req.params

@@ -316,11 +316,12 @@ class PatientValidator {
       /** Verificando se paciente pode ser atualizado */
       const patientUpdatable = await getRepository(Patient)
         .createQueryBuilder('patient')
-        .select(['patient.id', 'patientStatus.status'])
+        .select(['patient.id'])
         .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
         .where('patient.id = :id', { id })
-        .andWhere('patientStatus.status = 3')
-        .getRawOne()
+        .andWhere('status.status = :status', { status: 'Negado' })
+        .getOne()
 
       if (!patientUpdatable) {
         await dropFiles()

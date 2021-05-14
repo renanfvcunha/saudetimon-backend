@@ -29,13 +29,13 @@ routes.post(
 )
 routes.get('/patients/status/:cpf', PatientController.getStatus)
 routes.get('/patients/me/:cpf', PatientController.me)
-/* routes.put(
+routes.put(
   '/patients/:id',
   uploadFiles,
   PatientValidator.update,
   resizeImg,
   PatientController.update
-) */
+)
 
 routes.get('/groups', GroupController.index)
 
