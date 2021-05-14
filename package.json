@@ -1,6 +1,6 @@
 {
   "name": "saude-timon",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "App to collect data for helping on covid vaccination",
   "main": "server.js",
   "author": "B2B Desenvolvimentos",
