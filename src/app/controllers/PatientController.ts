@@ -16,105 +16,48 @@ import Status from '../models/Status'
 
 class PatientController {
   public async index (req: Request, res: Response) {
-    const { per_page, page, idStatus, idGroup, vaccinated } = req.query
+    const {
+      per_page,
+      page,
+      status,
+      idCategory,
+      idGroup,
+      vaccinated
+    } = req.query
 
     try {
-      if (per_page && page) {
-        if (idGroup) {
-          const totalCount = await getRepository(Patient)
-            .createQueryBuilder('patient')
-            .select(['patient.id'])
-            .innerJoin('patient.patientStatus', 'patientStatus')
-            .innerJoin('patientStatus.status', 'status')
-            .innerJoin('patient.group', 'group')
-            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
-            .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
-            .andWhere('patient.vaccinated = :vaccinated', {
-              vaccinated: vaccinated || false
-            })
-            .getCount()
+      const patients = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select([
+          'patient.id',
+          'patient.name',
+          'patient.cpf',
+          'patient.createdAt'
+        ])
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .innerJoin('patient.category', 'category')
+        .innerJoin('patient.group', 'group')
+        .where(status ? 'status.status = :status' : 'status.status = status', {
+          status
+        })
+        .andWhere(
+          idCategory ? 'category.id = :idCategory' : 'category.id > 0',
+          { idCategory }
+        )
+        .andWhere(idGroup ? 'group.id = :idGroup' : 'group.id > 0', { idGroup })
+        .andWhere(
+          vaccinated
+            ? 'patient.vaccinated = :vaccinated'
+            : 'patient.vaccinated = vaccinated',
+          { vaccinated }
+        )
+        .orderBy('patient.createdAt')
+        .take(per_page ? Number(per_page) : undefined)
+        .skip(per_page && page ? Number(per_page) * Number(page) : undefined)
+        .getManyAndCount()
 
-          const patients = await getRepository(Patient)
-            .createQueryBuilder('patient')
-            .select([
-              'patient.id',
-              'patient.name',
-              'patient.cpf',
-              'patient.createdAt',
-              'patient.updatedAt',
-              'group.id'
-            ])
-            .innerJoin('patient.patientStatus', 'patientStatus')
-            .innerJoin('patientStatus.status', 'status')
-            .innerJoin('patient.group', 'group')
-            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
-            .andWhere('group.id = :idGroup', { idGroup: Number(idGroup) })
-            .andWhere('patient.vaccinated = :vaccinated', {
-              vaccinated: vaccinated || false
-            })
-            .take(Number(per_page))
-            .skip(Number(per_page) * Number(page))
-            .orderBy('patient.createdAt')
-            .getMany()
-
-          res.header({
-            'Total-Count': totalCount,
-            Page: page
-          })
-
-          return res.json(patients)
-        } else {
-          const totalCount = await getRepository(Patient)
-            .createQueryBuilder('patient')
-            .select('patient.id')
-            .innerJoin('patient.patientStatus', 'patientStatus')
-            .innerJoin('patientStatus.status', 'status')
-            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
-            .andWhere('patient.vaccinated = :vaccinated', {
-              vaccinated: vaccinated || false
-            })
-            .getCount()
-
-          const patients = await getRepository(Patient)
-            .createQueryBuilder('patient')
-            .select([
-              'patient.id',
-              'patient.name',
-              'patient.cpf',
-              'patient.createdAt',
-              'patient.updatedAt'
-            ])
-            .innerJoin('patient.patientStatus', 'patientStatus')
-            .innerJoin('patientStatus.status', 'status')
-            .where('status.id = :idStatus', { idStatus: Number(idStatus) || 1 })
-            .andWhere('patient.vaccinated = :vaccinated', {
-              vaccinated: vaccinated || false
-            })
-            .take(Number(per_page))
-            .skip(Number(per_page) * Number(page))
-            .orderBy('patient.createdAt')
-            .getMany()
-
-          res.header({
-            'Total-Count': totalCount,
-            Page: page
-          })
-
-          return res.json(patients)
-        }
-      } else {
-        const patients = await getRepository(Patient)
-          .createQueryBuilder('patient')
-          .select([
-            'patient.id',
-            'patient.name',
-            'patient.cpf',
-            'patient.createdAt'
-          ])
-          .getMany()
-
-        return res.json(patients)
-      }
+      return res.json(patients)
     } catch (err) {
       console.error(err)
       return res.status(500).json({
@@ -288,27 +231,29 @@ class PatientController {
           'patient.cpf',
           'patient.susCard',
           'patient.phone',
-          'patient.idDocFront',
-          'patient.idDocVerse',
-          'patient.addressProof',
-          'patient.photo',
           'patient.createdAt',
-          'group.group',
           'address.street',
           'address.number',
           'address.complement',
           'address.reference',
           'address.neighborhood',
+          'attachment.field',
+          'attachment.filename',
+          'category.category',
+          'group.group',
           'comorbidityPatient',
+          'comorbidity.comorbidity',
           'patientStatus.message',
-          'status.id',
           'status.status'
         ])
-        .leftJoin('patient.group', 'group')
+        .innerJoin('patient.category', 'category')
+        .innerJoin('patient.group', 'group')
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
         .leftJoin('patient.address', 'address')
+        .leftJoin('patient.attachment', 'attachment')
         .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
-        .leftJoin('patient.patientStatus', 'patientStatus')
-        .leftJoin('patientStatus.status', 'status')
+        .leftJoin('comorbidityPatient.comorbidity', 'comorbidity')
         .where('patient.id = :id', { id })
         .getOne()
 

@@ -13,6 +13,8 @@ import PatientController from './app/controllers/PatientController'
 import GroupController from './app/controllers/GroupController'
 import ComorbidityController from './app/controllers/ComorbidityController'
 import FrequentDoubtController from './app/controllers/FrequentDoubtController'
+import CategoryController from './app/controllers/CategoryController'
+import StatusController from './app/controllers/StatusController'
 
 const routes = Router()
 
@@ -56,6 +58,10 @@ routes.post('/doubts', FrequentDoubtController.store)
 routes.get('/doubts/:id', FrequentDoubtController.show)
 routes.put('/doubts/:id', FrequentDoubtController.update)
 routes.delete('/doubts/:id', FrequentDoubtController.destroy)
+
+routes.get('/categories', CategoryController.index)
+
+routes.get('/status', StatusController.index)
 
 /** Middleware de verificação de admin */
 routes.use(isAdminMiddleware)
