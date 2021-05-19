@@ -63,6 +63,10 @@ routes.get('/categories', CategoryController.index)
 
 routes.get('/status', StatusController.index)
 
+routes.post('/comorbidities', ComorbidityController.store)
+routes.put('/comorbidities/:id', ComorbidityController.update)
+routes.delete('/comorbidities/:id', ComorbidityController.destroy)
+
 /** Middleware de verificação de admin */
 routes.use(isAdminMiddleware)
 
