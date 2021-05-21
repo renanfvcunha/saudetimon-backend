@@ -39,9 +39,9 @@ routes.put(
   PatientController.update
 )
 
-routes.get('/groups', GroupController.index)
-
 routes.get('/comorbidities', ComorbidityController.index)
+
+routes.get('/groups', GroupController.index)
 
 routes.get('/doubts', FrequentDoubtController.index)
 
@@ -66,6 +66,10 @@ routes.get('/status', StatusController.index)
 routes.post('/comorbidities', ComorbidityController.store)
 routes.put('/comorbidities/:id', ComorbidityController.update)
 routes.delete('/comorbidities/:id', ComorbidityController.destroy)
+
+routes.post('/groups', GroupController.store)
+routes.put('/groups/:id', GroupController.update)
+routes.delete('/groups/:id', GroupController.destroy)
 
 /** Middleware de verificação de admin */
 routes.use(isAdminMiddleware)
