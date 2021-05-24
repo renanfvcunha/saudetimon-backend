@@ -19,7 +19,7 @@ class Phone {
   name?: string
 
   @Column({
-    length: 190
+    length: 50
   })
   phone?: string
 

@@ -5,6 +5,7 @@ import isAdminMiddleware from './app/middlewares/isAdmin'
 import UserValidator from './app/validators/UserValidator'
 import PatientValidator from './app/validators/PatientValidator'
 import uploadFiles from './config/uploadFiles'
+import uploadVacLocPics from './config/uploadVacLocPics'
 import resizeImg from './app/middlewares/resizeImg'
 
 import UserController from './app/controllers/UserController'
@@ -15,6 +16,8 @@ import ComorbidityController from './app/controllers/ComorbidityController'
 import FrequentDoubtController from './app/controllers/FrequentDoubtController'
 import CategoryController from './app/controllers/CategoryController'
 import StatusController from './app/controllers/StatusController'
+import VaccineLocationController from './app/controllers/VaccineLocationController'
+import PhoneController from './app/controllers/PhoneController'
 
 const routes = Router()
 
@@ -45,6 +48,10 @@ routes.get('/groups', GroupController.index)
 
 routes.get('/doubts', FrequentDoubtController.index)
 
+routes.get('/vaccinelocations', VaccineLocationController.index)
+
+routes.get('/phones', PhoneController.index)
+
 /** Middleware de autenticação. */
 routes.use(authMiddleware)
 
@@ -70,6 +77,22 @@ routes.delete('/comorbidities/:id', ComorbidityController.destroy)
 routes.post('/groups', GroupController.store)
 routes.put('/groups/:id', GroupController.update)
 routes.delete('/groups/:id', GroupController.destroy)
+
+routes.post(
+  '/vaccinelocations',
+  uploadVacLocPics,
+  VaccineLocationController.store
+)
+routes.put(
+  '/vaccinelocations/:id',
+  uploadVacLocPics,
+  VaccineLocationController.update
+)
+routes.delete('/vaccinelocations/:id', VaccineLocationController.destroy)
+
+routes.post('/phones', PhoneController.store)
+routes.put('/phones/:id', PhoneController.update)
+routes.delete('/phones/:id', PhoneController.destroy)
 
 /** Middleware de verificação de admin */
 routes.use(isAdminMiddleware)
