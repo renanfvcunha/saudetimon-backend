@@ -7,7 +7,8 @@ class VaccineLocationControler {
   public async index (req: Request, res: Response) {
     try {
       const vaccineLocations = await getRepository(VaccineLocation).find({
-        select: ['id', 'name', 'helperText', 'picture']
+        select: ['id', 'name', 'helperText', 'picture', 'url'],
+        order: { createdAt: 'ASC' }
       })
 
       return res.json(vaccineLocations)
@@ -20,12 +21,12 @@ class VaccineLocationControler {
   }
 
   public async store (req: Request, res: Response) {
-    const { name, helperText }: VaccineLocation = req.body
+    const { name, helperText, url }: VaccineLocation = req.body
     const file = req.file
 
     try {
       /** Verificando se todos os campos estão preenchidos */
-      if (!name || !helperText || !file) {
+      if (!name || !helperText || !file || !url) {
         return res
           .status(400)
           .json({ msg: 'Verifique se todos os campos estão preenchidos.' })
@@ -35,6 +36,7 @@ class VaccineLocationControler {
       vacLoc.name = name
       vacLoc.helperText = helperText
       vacLoc.picture = file.filename
+      vacLoc.url = url
 
       await getRepository(VaccineLocation).save(vacLoc)
 
@@ -49,7 +51,7 @@ class VaccineLocationControler {
 
   public async update (req: Request, res: Response) {
     const { id } = req.params
-    const { name, helperText }: VaccineLocation = req.body
+    const { name, helperText, url }: VaccineLocation = req.body
     const file = req.file
 
     try {
@@ -59,6 +61,7 @@ class VaccineLocationControler {
       if (file) {
         vacLoc.picture = file.filename
       }
+      vacLoc.url = url
 
       await getRepository(VaccineLocation).update(id, vacLoc)
 

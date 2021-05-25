@@ -7,7 +7,8 @@ class PhoneController {
   public async index (req: Request, res: Response) {
     try {
       const phones = await getRepository(Phone).find({
-        select: ['id', 'name', 'phone']
+        select: ['id', 'name', 'phone'],
+        order: { createdAt: 'ASC' }
       })
 
       return res.json(phones)

@@ -28,6 +28,11 @@ class VaccineLocation {
   })
   picture?: string
 
+  @Column({
+    length: 200
+  })
+  url?: string
+
   @CreateDateColumn()
   createdAt?: Date
 
