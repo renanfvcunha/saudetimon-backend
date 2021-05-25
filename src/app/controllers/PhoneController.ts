@@ -6,7 +6,9 @@ import Phone from '../models/Phone'
 class PhoneController {
   public async index (req: Request, res: Response) {
     try {
-      const phones = await getRepository(Phone).find()
+      const phones = await getRepository(Phone).find({
+        select: ['id', 'name', 'phone']
+      })
 
       return res.json(phones)
     } catch (err) {

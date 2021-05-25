@@ -6,7 +6,9 @@ import VaccineLocation from '../models/VaccineLocation'
 class VaccineLocationControler {
   public async index (req: Request, res: Response) {
     try {
-      const vaccineLocations = await getRepository(VaccineLocation).find()
+      const vaccineLocations = await getRepository(VaccineLocation).find({
+        select: ['id', 'name', 'helperText', 'picture']
+      })
 
       return res.json(vaccineLocations)
     } catch (err) {
@@ -22,6 +24,13 @@ class VaccineLocationControler {
     const file = req.file
 
     try {
+      /** Verificando se todos os campos estão preenchidos */
+      if (!name || !helperText || !file) {
+        return res
+          .status(400)
+          .json({ msg: 'Verifique se todos os campos estão preenchidos.' })
+      }
+
       const vacLoc = new VaccineLocation()
       vacLoc.name = name
       vacLoc.helperText = helperText
