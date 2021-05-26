@@ -32,6 +32,13 @@ class VaccineLocationControler {
           .json({ msg: 'Verifique se todos os campos estão preenchidos.' })
       }
 
+      /** Verificando se url excede 200 caracteres */
+      if (url.length > 200) {
+        return res
+          .status(400)
+          .json({ msg: 'URL não pode exceder 200 caracteres.' })
+      }
+
       const vacLoc = new VaccineLocation()
       vacLoc.name = name
       vacLoc.helperText = helperText
@@ -53,6 +60,20 @@ class VaccineLocationControler {
     const { id } = req.params
     const { name, helperText, url }: VaccineLocation = req.body
     const file = req.file
+
+    /** Verificando se todos os campos estão preenchidos */
+    if (!name || !helperText || !url) {
+      return res.status(400).json({
+        msg: 'Verifique se todos os campos de texto estão preenchidos.'
+      })
+    }
+
+    /** Verificando se url excede 200 caracteres */
+    if (url.length > 200) {
+      return res
+        .status(400)
+        .json({ msg: 'URL não pode exceder 200 caracteres.' })
+    }
 
     try {
       const vacLoc = new VaccineLocation()
