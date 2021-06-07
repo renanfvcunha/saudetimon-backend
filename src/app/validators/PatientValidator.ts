@@ -179,15 +179,24 @@ class PatientValidator {
        * enviados em caso de gestantes
        */
       if (group.group && /gestantes/i.test(group.group)) {
-        if (
-          !files.prenatalCard ||
-          !files.puerperalCard ||
-          !files.bornAliveDec
-        ) {
+        if (!files.prenatalCard) {
+          await dropFiles()
+          return res.status(400).json({
+            msg: 'Verifique se o Cartão de Pré Natal foi enviado.'
+          })
+        }
+      }
+
+      if (
+        group.group &&
+        group.group ===
+          'Gestantes e puérperas a partir de 18 anos COM comorbidades'
+      ) {
+        if (!files.puerperalCard || !files.bornAliveDec) {
           await dropFiles()
           return res.status(400).json({
             msg:
-              'Verifique se todos os seguintes documentos foram enviados: Cartão de Pré Natal, Cartão de Puérperas e Declaração de Nascido Vivo.'
+              'Verifique se o Cartão de Puérperas e a Declaração de Nascido Vivo foram enviados.'
           })
         }
       }
