@@ -58,6 +58,7 @@ routes.use(authMiddleware)
 routes.get('/patients', PatientController.index)
 routes.get('/patients/:id', PatientController.show)
 routes.patch('/markasvaccinated/:id', PatientController.markAsVaccinated)
+routes.patch('/patients/:id/group', PatientController.changeGroup)
 
 routes.patch('/patients/status/:id', PatientController.changeStatus)
 

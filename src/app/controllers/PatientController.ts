@@ -392,6 +392,36 @@ class PatientController {
     }
   }
 
+  public async changeGroup (req: Request, res: Response) {
+    const { id } = req.params
+    const { idGroup }: { idGroup: string } = req.body
+
+    try {
+      // Buscando grupo com o id informado
+      const group = await getRepository(Group).findOne(idGroup)
+
+      if (!group) {
+        return res
+          .status(404)
+          .json({ msg: 'O grupo informado não foi encontrado.' })
+      }
+
+      const patient = new Patient()
+
+      patient.id = Number(id)
+      patient.group = group
+
+      await getRepository(Patient).save(patient)
+
+      return res.json({ msg: 'Grupo alterado com sucesso!' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
   public async update (req: Request, res: Response) {
     const { id } = req.params
     const {
