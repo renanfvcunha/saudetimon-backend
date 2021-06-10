@@ -188,10 +188,10 @@ class PatientController {
           filename: files.bornAliveDec[0].filename
         })
       }
-      if (files.patientContract) {
+      if (files.auxDoc) {
         attachments.push({
-          field: 'patientContract',
-          filename: files.patientContract[0].filename
+          field: 'auxDoc',
+          filename: files.auxDoc[0].filename
         })
       }
 
@@ -668,21 +668,21 @@ class PatientController {
           })
         }
       }
-      if (files.patientContract) {
-        const patientContractFound = attachmentSent.find(
-          attch => attch.field === 'patientContract'
+      if (files.auxDoc) {
+        const auxDocFound = attachmentSent.find(
+          attch => attch.field === 'auxDoc'
         )
-        if (patientContractFound) {
+        if (auxDocFound) {
           attachments.push({
-            id: patientContractFound.id,
-            field: patientContractFound.field,
-            filename: files.patientContract[0].filename,
-            patient: patientContractFound.patient
+            id: auxDocFound.id,
+            field: auxDocFound.field,
+            filename: files.auxDoc[0].filename,
+            patient: auxDocFound.patient
           })
         } else {
           attachments.push({
-            field: 'patientContract',
-            filename: files.patientContract[0].filename,
+            field: 'auxDoc',
+            filename: files.auxDoc[0].filename,
             patient: patientById
           })
         }

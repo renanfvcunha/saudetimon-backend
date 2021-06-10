@@ -92,7 +92,7 @@ const uploadFiles = (req: Request, res: Response, next: NextFunction) => {
       maxCount: 1
     },
     {
-      name: 'patientContract',
+      name: 'auxDoc',
       maxCount: 1
     }
   ])

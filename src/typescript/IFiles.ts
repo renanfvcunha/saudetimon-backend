@@ -11,5 +11,5 @@ export default interface IFiles {
   prenatalCard?: Express.Multer.File[]
   puerperalCard?: Express.Multer.File[]
   bornAliveDec?: Express.Multer.File[]
-  patientContract?: Express.Multer.File[]
+  auxDoc?: Express.Multer.File[]
 }

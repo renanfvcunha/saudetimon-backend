@@ -78,8 +78,8 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.patientContract) {
-          unlink(files.patientContract[0].path, err => {
+        if (files.auxDoc) {
+          unlink(files.auxDoc[0].path, err => {
             if (err) reject(err)
           })
         }
@@ -204,7 +204,7 @@ class PatientValidator {
       /** Verificando se contrato com o paciente ou declaração autenticada em
        * cartório foi enviado em caso de profissional de saúde autônomo
        */
-      if (
+      /* if (
         group.group &&
         group.group === 'Profissionais da área da saúde - autônomos'
       ) {
@@ -215,7 +215,7 @@ class PatientValidator {
               'Necessário enviar contrato com o paciente ou declaração autenticada em cartório.'
           })
         }
-      }
+      } */
 
       /** Verificanco se cpf e cartão sus já estão cadastrados */
       const cpfCheck = await getRepository(Patient).findOne({ where: { cpf } })
@@ -312,8 +312,8 @@ class PatientValidator {
             if (err) reject(err)
           })
         }
-        if (files.patientContract) {
-          unlink(files.patientContract[0].path, err => {
+        if (files.auxDoc) {
+          unlink(files.auxDoc[0].path, err => {
             if (err) reject(err)
           })
         }

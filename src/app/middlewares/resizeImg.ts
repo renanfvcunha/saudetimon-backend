@@ -149,13 +149,13 @@ const resizeImg = (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  if (files.patientContract) {
-    if (files.patientContract[0].mimetype !== 'application/pdf') {
-      resizeImgFile(files.patientContract[0], 1920)
+  if (files.auxDoc) {
+    if (files.auxDoc[0].mimetype !== 'application/pdf') {
+      resizeImgFile(files.auxDoc[0], 1920)
     } else {
       rename(
-        files.patientContract[0].path,
-        resolve(uploadsPath, files.patientContract[0].filename),
+        files.auxDoc[0].path,
+        resolve(uploadsPath, files.auxDoc[0].filename),
         err => {
           if (err) throw err
         }
