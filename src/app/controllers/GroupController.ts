@@ -7,33 +7,20 @@ import Group from '../models/Group'
 
 class GroupController {
   public async index (req: Request, res: Response) {
-    const { idCategory } = req.query
+    const { idCategory, orderBy } = req.query
 
     try {
-      if (idCategory) {
-        const category = await getRepository(Category).findOne(
-          Number(idCategory)
-        )
-
-        if (!category) {
-          return res.status(400).json({ msg: 'Categoria não encontrada.' })
-        }
-
-        const groups = await getRepository(Group)
-          .createQueryBuilder('group')
-          .select(['group.id', 'group.group'])
-          .innerJoin('group.category', 'category')
-          .where('category.id = :idCategory', { idCategory })
-          .getMany()
-
-        return res.json(groups)
-      } else {
-        const groups = await getRepository(Group).find({
-          relations: ['category']
+      const groups = await getRepository(Group)
+        .createQueryBuilder('group')
+        .select(['group.id', 'group.group', 'category'])
+        .innerJoin('group.category', 'category')
+        .where(idCategory ? 'category.id = :idCategory' : 'category.id > 0', {
+          idCategory
         })
+        .orderBy(orderBy ? `group.${orderBy}` : 'group.id', 'ASC')
+        .getMany()
 
-        return res.json(groups)
-      }
+      return res.json(groups)
     } catch (err) {
       console.error(err)
       return res.status(500).json({
