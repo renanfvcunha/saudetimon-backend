@@ -240,10 +240,12 @@ class PatientController {
           'attachment.field',
           'attachment.filename',
           'category.category',
+          'group.id',
           'group.group',
           'comorbidityPatient',
           'comorbidity.comorbidity',
           'patientStatus.message',
+          'status.id',
           'status.status'
         ])
         .innerJoin('patient.category', 'category')
@@ -714,9 +716,10 @@ class PatientController {
         .createQueryBuilder('patient')
         .select(['patient.id', 'patientStatus.status'])
         .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
         .where('patient.id = :id', { id })
-        .andWhere('patientStatus.status = 2')
-        .getRawOne()
+        .andWhere('status = :status', { status: 'Aprovado' })
+        .getOne()
 
       if (!patientApproved) {
         return res.status(401).json({
@@ -729,7 +732,9 @@ class PatientController {
       patient.vaccinated = true
 
       await getRepository(Patient).update(id, patient)
-      return res.json({ msg: 'Usuário marcado como vacinado com sucesso.' })
+      return res.json({
+        msg: 'Paciente marcado(a) como vacinado(a) com sucesso.'
+      })
     } catch (err) {
       console.error(err)
       return res.status(500).json({

@@ -29,7 +29,7 @@ class PatientStatus {
   @Column('text', {
     nullable: true
   })
-  message?: string
+  message?: string | null
 
   @ManyToOne(() => Status, status => status.patientStatus, {
     onUpdate: 'CASCADE',
