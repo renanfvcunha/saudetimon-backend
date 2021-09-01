@@ -847,7 +847,9 @@ class PatientController {
 
         ws.cell(1, 1, 1, 7, true)
           .string(
-            `Saúde Timon 24h - Lista de Pacientes - Período: ${`${startParsed} a ${endParsed}`}`
+            `Saúde Timon 24h - Lista de Pacientes - Período: ${
+              start && end ? `${startParsed} a ${endParsed}` : 'Todos'
+            }`
           )
           .style(headerStyle)
 
@@ -909,7 +911,9 @@ class PatientController {
               margin: [0, 0, 0, 8]
             },
             {
-              text: `Período: ${`${startParsed} a ${endParsed}`}`,
+              text: `Período: ${
+                start && end ? `${startParsed} a ${endParsed}` : 'Todos'
+              }`,
               alignment: 'right',
               fontSize: 10,
               margin: [0, 0, 0, 8]
