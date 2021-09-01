@@ -785,7 +785,7 @@ class PatientController {
       const patientsParsed = patients.map(patient => {
         const createdAt = patient.createdAt
         createdAt?.setHours(createdAt.getHours() - 3)
-        const removeSeconds = createdAt?.toLocaleString().split(':')
+        const removeSeconds = createdAt?.toLocaleString('pt-BR').split(':')
         removeSeconds?.pop()
         const newCreatedAt = removeSeconds?.join(':')
 
