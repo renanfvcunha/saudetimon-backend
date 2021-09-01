@@ -1,9 +1,13 @@
 import { Request, Response } from 'express'
 import { getManager, getRepository } from 'typeorm'
-import IFiles from '../../typescript/IFiles'
+import xl from 'excel4node'
+import { resolve } from 'path'
+import { TDocumentDefinitions } from 'pdfmake/interfaces'
 
+import IFiles from '../../typescript/IFiles'
 import IPatient from '../../typescript/IPatient'
 import IPatientStatus from '../../typescript/IPatientStatus'
+
 import Address from '../models/Address'
 import Attachment from '../models/Attachment'
 import Category from '../models/Category'
@@ -13,6 +17,10 @@ import Group from '../models/Group'
 import Patient from '../models/Patient'
 import PatientStatus from '../models/PatientStatus'
 import Status from '../models/Status'
+
+import pdf from '../../config/export/pdf'
+
+import masks from '../../utils/masks'
 
 class PatientController {
   public async index (req: Request, res: Response) {
@@ -735,6 +743,215 @@ class PatientController {
       return res.json({
         msg: 'Paciente marcado(a) como vacinado(a) com sucesso.'
       })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
+  public async exportMany (req: Request, res: Response) {
+    const { type, start, end } = req.query
+
+    try {
+      const queryBuilder = getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select([
+          'patient.id',
+          'patient.name',
+          'patient.cpf',
+          'patient.phone',
+          'patient.createdAt',
+          'patientStatus.message',
+          'status.status',
+          'group'
+        ])
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .innerJoin('patient.group', 'group')
+
+      if (start && end) {
+        queryBuilder.where('patient.createdAt BETWEEN :start AND :end', {
+          start,
+          end
+        })
+      }
+
+      queryBuilder.orderBy('patient.createdAt')
+
+      const patients = await queryBuilder.getMany()
+
+      const patientsParsed = patients.map(patient => {
+        const createdAt = patient.createdAt
+        createdAt?.setHours(createdAt.getHours() - 3)
+        const removeSeconds = createdAt?.toLocaleString().split(':')
+        removeSeconds?.pop()
+        const newCreatedAt = removeSeconds?.join(':')
+
+        const parse = {
+          ...patient,
+          cpf: masks.cpfMask(patient.cpf as string),
+          phone: masks.phoneMask(patient.phone as string),
+          status: patient.patientStatus?.status?.status,
+          group: patient.group?.group,
+          createdAt: newCreatedAt
+        }
+
+        delete parse.patientStatus
+
+        return parse
+      })
+
+      let startParsed = ''
+      if (start) {
+        const startSpitted = String(start).split('-')
+        startParsed = `${startSpitted[2]}/${startSpitted[1]}/${startSpitted[0]}`
+      }
+
+      let endParsed = ''
+      if (end) {
+        const endSpitted = String(end).split('-')
+        endParsed = `${endSpitted[2]}/${endSpitted[1]}/${endSpitted[0]}`
+      }
+
+      if (!type) {
+        return res.status(400).json({ msg: 'Escolha um tipo de saída.' })
+      }
+
+      if (type === 'excel') {
+        const data = patientsParsed.map(patient => {
+          const values = Object.values(patient)
+
+          return values.map(val => String(val))
+        })
+
+        const wb = new xl.Workbook()
+
+        const ws = wb.addWorksheet('Lista de Pacientes')
+
+        const headerStyle = wb.createStyle({
+          alignment: {
+            horizontal: 'center'
+          },
+          font: {
+            color: '#ffffff',
+            bold: true
+          },
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            fgColor: '#093d74'
+          }
+        })
+
+        ws.cell(1, 1, 1, 7, true)
+          .string(
+            `Saúde Timon 24h - Lista de Pacientes - Período: ${`${startParsed} a ${endParsed}`}`
+          )
+          .style(headerStyle)
+
+        ws.cell(2, 1).string('ID').style(headerStyle)
+        ws.cell(2, 2).string('Nome').style(headerStyle)
+        ws.cell(2, 3).string('CPF').style(headerStyle)
+        ws.cell(2, 4).string('Telefone').style(headerStyle)
+        ws.cell(2, 5).string('Data do Cadastro').style(headerStyle)
+        ws.cell(2, 6).string('Grupo').style(headerStyle)
+        ws.cell(2, 7).string('Status').style(headerStyle)
+
+        data.forEach((dt, i) =>
+          dt.forEach((cell, j) => ws.cell(i + 3, j + 1).string(cell))
+        )
+
+        wb.writeToBuffer().then((buffer: Buffer) => {
+          res.attachment('report.xlsx')
+          return res.end(buffer)
+        })
+      }
+
+      if (type === 'pdf') {
+        const tBody = patientsParsed.map(patient => {
+          const values = Object.values(patient)
+
+          return values.map(val => ({
+            text: String(val)
+          }))
+        })
+
+        const docDefinitions: TDocumentDefinitions = {
+          pageMargins: [20, 40, 20, 40],
+          defaultStyle: {
+            font: 'Roboto'
+          },
+          content: [
+            {
+              columns: [
+                {
+                  image: resolve(
+                    __dirname,
+                    '..',
+                    '..',
+                    'images',
+                    'logo1024-512.png'
+                  ),
+                  width: 150,
+                  alignment: 'left'
+                },
+                {
+                  text: 'Lista de Pacientes',
+                  style: 'header',
+                  alignment: 'center',
+                  fontSize: 24,
+                  bold: true,
+                  margin: [0, 25, 120, 0]
+                }
+              ],
+              margin: [0, 0, 0, 8]
+            },
+            {
+              text: `Período: ${`${startParsed} a ${endParsed}`}`,
+              alignment: 'right',
+              fontSize: 10,
+              margin: [0, 0, 0, 8]
+            },
+            {
+              table: {
+                body: [
+                  [
+                    { text: 'ID', style: 'tHead' },
+                    { text: 'Nome', style: 'tHead' },
+                    { text: 'CPF', style: 'tHead' },
+                    { text: 'Telefone', style: 'tHead' },
+                    { text: 'Data do Cadastro', style: 'tHead' },
+                    { text: 'Grupo', style: 'tHead' },
+                    { text: 'Status', style: 'tHead' }
+                  ],
+                  ...tBody
+                ]
+              }
+            }
+          ],
+          styles: {
+            tHead: {
+              bold: true,
+              alignment: 'center',
+              fillColor: '#093d74',
+              color: '#fff'
+            }
+          }
+        }
+
+        const pdfDoc = pdf(docDefinitions)
+
+        const chunks: Uint8Array[] = []
+        pdfDoc.on('data', chunk => chunks.push(chunk))
+        pdfDoc.end()
+        pdfDoc.on('end', () => {
+          const result = Buffer.concat(chunks)
+          res.attachment('report.pdf')
+          return res.end(result)
+        })
+      }
     } catch (err) {
       console.error(err)
       return res.status(500).json({

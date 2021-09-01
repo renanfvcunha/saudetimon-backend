@@ -56,13 +56,13 @@ routes.get('/phones', PhoneController.index)
 routes.use(authMiddleware)
 
 routes.get('/patients', PatientController.index)
+routes.get('/patients/export', PatientController.exportMany)
 routes.get('/patients/:id', PatientController.show)
 routes.patch(
   '/patients/:id/markasvaccinated',
   PatientController.markAsVaccinated
 )
 routes.patch('/patients/:id/group', PatientController.changeGroup)
-
 routes.patch('/patients/:id/status', PatientController.changeStatus)
 
 routes.post('/doubts', FrequentDoubtController.store)
