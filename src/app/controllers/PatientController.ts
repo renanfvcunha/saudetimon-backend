@@ -3,6 +3,7 @@ import { getManager, getRepository } from 'typeorm'
 import xl from 'excel4node'
 import { resolve } from 'path'
 import { TDocumentDefinitions } from 'pdfmake/interfaces'
+import { addHours, format, subHours } from 'date-fns'
 
 import IFiles from '../../typescript/IFiles'
 import IPatient from '../../typescript/IPatient'
@@ -754,6 +755,17 @@ class PatientController {
   public async exportMany (req: Request, res: Response) {
     const { type, start, end } = req.query
 
+    let startPlus3 = ''
+    let endPlus3 = ''
+
+    if (start && end) {
+      const aux1 = addHours(new Date(start as string), 3)
+      startPlus3 = format(aux1, `yyyy'-'LL'-'dd HH':'mm':'ss`)
+
+      const aux2 = addHours(new Date(end as string), 3)
+      endPlus3 = format(aux2, `yyyy'-'LL'-'dd HH':'mm':'ss`)
+    }
+
     try {
       const queryBuilder = getRepository(Patient)
         .createQueryBuilder('patient')
@@ -773,8 +785,8 @@ class PatientController {
 
       if (start && end) {
         queryBuilder.where('patient.createdAt BETWEEN :start AND :end', {
-          start,
-          end
+          start: startPlus3,
+          end: endPlus3
         })
       }
 
@@ -783,11 +795,8 @@ class PatientController {
       const patients = await queryBuilder.getMany()
 
       const patientsParsed = patients.map(patient => {
-        const createdAt = patient.createdAt
-        createdAt?.setHours(createdAt.getHours() - 3)
-        const removeSeconds = createdAt?.toLocaleString('pt-BR').split(':')
-        removeSeconds?.pop()
-        const newCreatedAt = removeSeconds?.join(':')
+        const aux = subHours(patient.createdAt as Date, 3)
+        const createdAt = format(aux, `dd'/'LL'/'yyyy HH':'mm`)
 
         const parse = {
           ...patient,
@@ -795,7 +804,7 @@ class PatientController {
           phone: masks.phoneMask(patient.phone as string),
           status: patient.patientStatus?.status?.status,
           group: patient.group?.group,
-          createdAt: newCreatedAt
+          createdAt
         }
 
         delete parse.patientStatus
@@ -803,20 +812,15 @@ class PatientController {
         return parse
       })
 
-      let startParsed = ''
-      if (start) {
-        const startSpitted = String(start).split('-')
-        startParsed = `${startSpitted[2]}/${startSpitted[1]}/${startSpitted[0]}`
-      }
-
-      let endParsed = ''
-      if (end) {
-        const endSpitted = String(end).split('-')
-        endParsed = `${endSpitted[2]}/${endSpitted[1]}/${endSpitted[0]}`
+      let startFormatted = ''
+      let endFormatted = ''
+      if (start && end) {
+        startFormatted = format(new Date(start as string), `dd'/'LL'/'yyyy`)
+        endFormatted = format(new Date(end as string), `dd'/'LL'/'yyyy`)
       }
 
       if (!type) {
-        return res.status(400).json({ msg: 'Escolha um tipo de saída.' })
+        return res.status(400).json({ msg: 'Escolha um tipo de saída!' })
       }
 
       if (type === 'excel') {
@@ -848,7 +852,7 @@ class PatientController {
         ws.cell(1, 1, 1, 7, true)
           .string(
             `Saúde Timon 24h - Lista de Pacientes - Período: ${
-              start && end ? `${startParsed} a ${endParsed}` : 'Todos'
+              start && end ? `${startFormatted} a ${endFormatted}` : 'Todos'
             }`
           )
           .style(headerStyle)
@@ -912,7 +916,7 @@ class PatientController {
             },
             {
               text: `Período: ${
-                start && end ? `${startParsed} a ${endParsed}` : 'Todos'
+                start && end ? `${startFormatted} a ${endFormatted}` : 'Todos'
               }`,
               alignment: 'right',
               fontSize: 10,
