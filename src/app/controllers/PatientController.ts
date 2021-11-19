@@ -295,13 +295,24 @@ class PatientController {
           'address.reference as reference',
           'address.neighborhood as neighborhood',
           'comorbidityPatient.renOncImun as "renOncImun"',
-          'comorbidity.id as "idComorbidity"'
+          'group.id as "idGroup"',
+          'comorbidity.id as "idComorbidity"',
+          'status.status as "status"'
         ])
         .innerJoin('patient.address', 'address')
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .innerJoin('patient.group', 'group')
         .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
         .leftJoin('comorbidityPatient.comorbidity', 'comorbidity')
         .where('patient.cpf = :cpf', { cpf })
         .getRawOne()
+
+      if (!patient) {
+        return res
+          .status(404)
+          .json({ msg: 'CPF não encontrado na base de dados!' })
+      }
 
       return res.json(patient)
     } catch (err) {
@@ -820,7 +831,7 @@ class PatientController {
       }
 
       if (!type) {
-        return res.status(400).json({ msg: 'Escolha um tipo de saída!' })
+        return res.status(400).json({ msg: 'Escolha um formato de saída!' })
       }
 
       if (type === 'excel') {
@@ -870,7 +881,9 @@ class PatientController {
         )
 
         wb.writeToBuffer().then((buffer: Buffer) => {
-          res.attachment('report.xlsx')
+          res.contentType(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          )
           return res.end(buffer)
         })
       }
@@ -956,10 +969,75 @@ class PatientController {
         pdfDoc.end()
         pdfDoc.on('end', () => {
           const result = Buffer.concat(chunks)
-          res.attachment('report.pdf')
+          res.contentType('application/pdf')
           return res.end(result)
         })
       }
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({
+        msg: 'Erro interno do servidor. Tente novamente ou contate o suporte.'
+      })
+    }
+  }
+
+  public async exportSingle (req: Request, res: Response) {
+    const { type } = req.query
+    const { id } = req.params
+
+    try {
+      const patient = await getRepository(Patient)
+        .createQueryBuilder('patient')
+        .select([
+          'patient.id',
+          'patient.name',
+          'patient.cpf',
+          'patient.susCard',
+          'patient.phone',
+          'patient.createdAt',
+          'address.street',
+          'address.number',
+          'address.complement',
+          'address.reference',
+          'address.neighborhood',
+          'attachment.field',
+          'attachment.filename',
+          'group.group',
+          'comorbidityPatient',
+          'comorbidity.comorbidity',
+          'patientStatus.message',
+          'status.status'
+        ])
+        .innerJoin('patient.group', 'group')
+        .innerJoin('patient.patientStatus', 'patientStatus')
+        .innerJoin('patientStatus.status', 'status')
+        .leftJoin('patient.address', 'address')
+        .leftJoin('patient.attachment', 'attachment')
+        .leftJoin('patient.comorbidityPatient', 'comorbidityPatient')
+        .leftJoin('comorbidityPatient.comorbidity', 'comorbidity')
+        .where('patient.id = :id', { id })
+        .getOne()
+
+      if (!patient) {
+        return res.status(404).json({ msg: 'Paciente não encontrado!' })
+      }
+
+      if (!type) {
+        return res.status(400).json({ msg: 'Escolha um formato de saída!' })
+      }
+
+      const patientParsed = {
+        ...patient,
+        attachment: patient.attachment?.map(attach => ({
+          ...attach,
+          filename: `uploads/${attach.filename}`
+        }))
+      }
+
+      /* if (type === 'pdf') {
+      } */
+
+      return res.json(patientParsed)
     } catch (err) {
       console.error(err)
       return res.status(500).json({

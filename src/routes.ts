@@ -52,6 +52,7 @@ routes.get('/vaccinelocations', VaccineLocationController.index)
 
 routes.get('/phones', PhoneController.index)
 
+routes.get('/patients/:id/export', PatientController.exportSingle)
 /** Middleware de autenticação. */
 routes.use(authMiddleware)
 
