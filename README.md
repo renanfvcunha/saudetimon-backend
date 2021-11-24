@@ -55,7 +55,7 @@ $ yarn
 2. Copiar o arquivo .env.example nomeando como .env e setar as variáveis de
 ambiente necessárias. OBS: As variáveis já setadas devem permanecer como estão.
 
-1. Executar o projeto para a sincronização do TypeORM com o banco de dados.
+3. Executar o projeto para a sincronização do TypeORM com o banco de dados.
 ```bash
 $ npm run dev
 
@@ -97,9 +97,9 @@ $ node build/server.js
 
 5. Parar o projeto e executar os seeds do banco de dados utilizando o comando:
 ```bash
-$ npm run typeorm seed:prod
+$ npm run seed:prod
 
-$ yarn typeorm seed:prod
+$ yarn seed:prod
 ```
 
 6. Após isso o projeto estará pronto para ser utilizado em produção.
